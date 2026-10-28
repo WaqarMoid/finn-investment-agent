@@ -85,7 +85,7 @@ class TestMobileShell(unittest.TestCase):
             self.assertIn("Management Guidance Ledger", page.content())
 
             # 5. Open Evidence Drawer
-            inspect_btn = page.locator("button:has-text('Inspect Dual Evidence')").first
+            inspect_btn = page.locator("button:has-text('Inspect Stated Evidence')").first
             inspect_btn.click()
             drawer = page.locator("[role='dialog']")
             self.assertTrue(drawer.is_visible())

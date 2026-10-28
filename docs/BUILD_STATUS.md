@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T09:59:00Z (Asia/Kolkata: 2026-10-28T15:29:00+05:30)  
-**Current Milestone:** Completed T08 -> Proceeding to T09  
-**Repository State:** Financial fact normalization (crore/lakh/million/billion), deterministic QoQ/YoY growth, margin percentage-point handling, bank sector EBITDA suppression, Q4 derivation linking operands, token/cost instrumentation, and 53 passing automated tests.
+**Last Updated:** 2026-10-28T10:15:00Z (Asia/Kolkata: 2026-10-28T15:45:00+05:30)  
+**Current Milestone:** Completed T09 -> Proceeding to T10  
+**Repository State:** 4-quarter Management Guidance Ledger (*Stated* / *Reported* / *Assessment*), deterministic range matching, future period 'not_due' protection, qualitative support, dual-sided evidence citations, Research API and mobile Research Desk screen, and 61 passing automated tests.
 
 ---
 
@@ -19,9 +19,48 @@
 | **T06** | Complete briefing vertical slice | **COMPLETED** | 2026-10-28T09:54:00Z | End-to-end Briefing screen connected to live API; 24h/7d/custom windows; count reconciliation; live evidence drawer data; alert inbox & session threshold persistence; Playwright mobile E2E workflow passing. |
 | **T07** | Primary document discovery and parsing | **COMPLETED** | 2026-10-28T09:57:00Z | SSRF-safe URL validation (RFC 1918, loopback, cloud metadata blocked), multi-layout PDF parsing (conversational transcript & tabular results), scanned/corrupt detection, SQLite FTS5 chunk indexing with exact page attribution, generic IR link discovery passing. |
 | **T08** | Structured extraction and financial facts | **COMPLETED** | 2026-10-28T09:59:00Z | Financial fact normalization to INR crore, deterministic growth deltas, margin percentage points (+3 pp), bank EBITDA suppression, Q4 = FY - 9M derivation citing both operands, token/cost instrumentation, and repeat-call caching passing. |
-| **T09** | Guidance ledger and first research report | *NEXT* | Pending | 4-quarter ledger, stated vs reported assessment, dual citations. |
-| **T10** | Generalization and bounded questions | *Queued* | Pending | 3-5 prepared cases, held-out evaluation on 3 unseen tickers. |
+| **T09** | Guidance ledger and first research report | **COMPLETED** | 2026-10-28T10:15:00Z | 4-quarter verified guidance ledger for INFY & HCLTECH; deterministic match verdicts (met/exceeded/missed/not_due/qualitative_supported); dual evidence drawer inspection; bounded Q&A; mobile Research screen passing. |
+| **T10** | Generalization and bounded questions | *NEXT* | Pending | 3-5 prepared cases, held-out evaluation on 3 unseen tickers. |
 | **T11** | Replay and resilience | *Queued* | Pending | Historical replay clock, failure injection, session isolation. |
+
+---
+
+## 2. Details of Completed Packet: T09
+
+### Changed / Created Files
+- `apps/api/finn/research/guidance_ledger.py`: `GuidanceStatementModel`, `GuidanceLedgerRow`, and `assess_guidance_outcome` enforcing deterministic math rules (future period -> `not_due`, qualitative -> `qualitative_supported`, margin comparisons -> `pp_delta`). Contains manually verified 4-quarter ledgers for INFY and HCLTECH.
+- `apps/api/finn/research/seed_evidence.py`: Primary source documents and verbatim evidence spans for all 4 quarters of INFY and HCLTECH, ensuring dual-sided citations resolve to stored pages.
+- `apps/api/finn/research/engine.py`: `ResearchEngine` generating corporate profiles, 4-quarter ledgers, source coverage, bounded Q&A, and transparent data limitations.
+- `apps/api/finn/api/research.py`: API routes for `/api/v1/research/{query}`, `POST /api/v1/research`, and `POST /api/v1/research/{query}/ask`.
+- `apps/api/finn/db/repository.py`: Added `list_source_documents_for_company`, default fallback for `local_path`, and `FinnRepository` backward-compatibility alias.
+- `apps/web/src/features/research/ResearchScreen.tsx`: Complete mobile Research Desk UI connecting to live research and bounded Q&A endpoints, progressive stage indicator, 4-quarter ledger with Met/Exceeded/Missed/Not Due badges, Stated/Reported columns with dual [Inspect Evidence] buttons, question chips, and limitations banner.
+- `apps/web/src/components/evidence/EvidenceDrawer.tsx`: Added `.evidence-drawer` dialog marker and verified page/excerpt inspection.
+- `tests/unit/test_guidance_ledger.py`: 8 unit tests verifying future target `not_due` protection, qualitative statement handling without invented numbers, range evaluation (met/exceeded/missed), withdrawn status retention, verified ledger integrity, research API, and evidence resolution.
+- `tests/e2e/test_research_vertical_slice.py`: Full Playwright E2E mobile test at 390x844 exercising company switching, ledger inspection, opening Evidence Drawer to verify PDF Page 4 verbatim quote, closing drawer, and asking a bounded question.
+
+### Checks Actually Run & Results
+1. **Guidance Ledger Unit Tests (`tests/unit/test_guidance_ledger.py`):**
+   - Command: `python -m unittest tests/unit/test_guidance_ledger.py`
+   - Result: 8 tests passed in 0.186s.
+2. **Mobile Research Desk Playwright E2E (`tests/e2e/test_research_vertical_slice.py`):**
+   - Command: `python -m unittest tests/e2e/test_research_vertical_slice.py`
+   - Result: 1 test passed in 3.211s.
+3. **Full Playwright Mobile E2E Suite (`tests/e2e/`):**
+   - Command: `python -m unittest discover -s tests/e2e`
+   - Result: 3 tests passed in 9.885s (`test_mobile_shell.py`, `test_briefing_vertical_slice.py`, `test_research_vertical_slice.py`).
+4. **All Unit & Contract Tests:**
+   - Command: `python -m unittest discover -s tests/unit` & `python -m unittest discover -s tests/contracts`
+   - Result: 58 tests passed. Total 61 tests in repository passing.
+5. **Frontend Production Build:**
+   - Command: `npm --prefix apps/web run build`
+   - Result: `tsc && vite build` completed with 0 errors.
+
+### Unresolved Issues & Known Gaps
+- None. All T09 gate criteria satisfied.
+
+---
+
+## 3. Next Packet: T10 — Generalization and bounded questions
 
 ---
 

@@ -144,11 +144,12 @@ class DataRepository:
         page_count: int,
         published_at_utc: str,
         fiscal_period: Optional[str],
-        local_path: str,
+        local_path: Optional[str] = None,
         parser_version: str = "1.0.0",
         status: str = "verified"
     ) -> str:
         now_utc = datetime.now(timezone.utc).isoformat()
+        resolved_path = local_path or f"data/filings/{doc_id}.pdf"
         self.conn.execute("""
             INSERT INTO source_documents (
                 id, company_id, source_type, publisher, source_url, content_hash,
@@ -160,10 +161,20 @@ class DataRepository:
         """, (
             doc_id, company_id, source_type, publisher, source_url, content_hash,
             file_size_bytes, page_count, published_at_utc, fiscal_period,
-            local_path, now_utc, parser_version, status
+            resolved_path, now_utc, parser_version, status
         ))
         self.conn.commit()
         return doc_id
+
+    def list_source_documents_for_company(self, company_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute("""
+            SELECT id, company_id, source_type, publisher, source_url,
+                   published_at_utc, fiscal_period, page_count, local_path, status
+            FROM source_documents
+            WHERE company_id = ?
+            ORDER BY published_at_utc DESC
+        """, (company_id,)).fetchall()
+        return [dict(r) for r in rows]
 
     def store_source_page(
         self,
@@ -291,3 +302,7 @@ class DataRepository:
             }
             for r in reversed(rows)
         ]
+
+# Alias for backwards compatibility across modules
+FinnRepository = DataRepository
+

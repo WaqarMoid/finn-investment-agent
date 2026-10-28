@@ -74,6 +74,7 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
 
   return (
     <div
+      className="evidence-drawer-overlay"
       style={{
         position: "fixed",
         inset: 0,
@@ -86,6 +87,7 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
       onClick={onClose}
     >
       <div
+        className="evidence-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="evidence-drawer-title"
