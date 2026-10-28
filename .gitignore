@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+build/
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment files & secrets
+.env
+.env.local
+*.pem
+
+# Local database and persistent storage files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+!data/manifests/
+
+# Test coverage & logs
+coverage/
+*.log
+.pytest_cache/
+.playwright/
+
+# OS files
+.DS_Store
+Thumbs.db

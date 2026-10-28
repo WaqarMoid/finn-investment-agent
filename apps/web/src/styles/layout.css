@@ -1,0 +1,230 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--canvas);
+}
+
+/* Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: env(safe-area-inset-top, var(--space-3)) var(--space-4) var(--space-3);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--line);
+  height: 56px;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-logo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 18px;
+}
+
+.brand-logo-line {
+  height: 2.5px;
+  background-color: var(--accent);
+  border-radius: 1px;
+}
+
+.brand-logo-line:last-child {
+  width: 70%;
+  background-color: var(--muted);
+}
+
+.brand-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.brand-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--radius-control);
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--positive);
+}
+
+/* Main content wrapper */
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  /* Leave space for bottom navigation on mobile */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, var(--space-4)));
+}
+
+/* Mobile Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background-color: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: var(--min-touch-target);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 2px;
+  transition: color var(--duration-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Cards and Panels */
+.panel {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-3);
+}
+
+.panel-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-control);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-attention {
+  background-color: #FDF2F2;
+  color: var(--negative);
+  border: 1px solid #F8D7DA;
+}
+
+.badge-worth-a-look {
+  background-color: #FEF9EE;
+  color: var(--warning);
+  border: 1px solid #FBEED1;
+}
+
+.badge-routine {
+  background-color: var(--surface-muted);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.badge-synthetic {
+  background-color: #FFF3CD;
+  color: #856404;
+  border: 1px solid #FFEBAA;
+  font-size: 0.6875rem;
+}
+
+/* Responsive desktop adjustments */
+@media (min-width: 1024px) {
+  .app-shell {
+    flex-direction: row;
+  }
+
+  .bottom-nav {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: var(--space-6);
+    gap: var(--space-2);
+    border-top: none;
+    border-right: 1px solid var(--line);
+  }
+
+  .nav-item {
+    flex: initial;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 90%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-control);
+    gap: var(--space-3);
+    font-size: 0.875rem;
+  }
+
+  .nav-item.active {
+    background-color: var(--accent-soft);
+  }
+
+  .main-content {
+    padding-bottom: var(--space-6);
+  }
+}

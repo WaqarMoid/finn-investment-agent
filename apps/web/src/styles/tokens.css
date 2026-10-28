@@ -1,0 +1,80 @@
+:root {
+  --canvas: #F3F6F8;
+  --surface: #FFFFFF;
+  --surface-muted: #EAF0F4;
+  --ink: #172B3A;
+  --muted: #526575;
+  --line: #D5DFE5;
+  --control-border: #778997;
+  --accent: #1557B0;
+  --accent-soft: #E8F0FC;
+  --positive: #16634A;
+  --negative: #A82D39;
+  --warning: #845500;
+  --focus: #1557B0;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-sheet: 16px;
+
+  --duration-fast: 140ms;
+  --duration-panel: 200ms;
+
+  --font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --min-touch-target: 44px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Tabular numbers for financial metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Screen reader accessible only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

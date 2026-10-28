@@ -1,0 +1,13 @@
+{
+  "name": "finn-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FINN: The Evidence-First Portfolio Briefing Engine",
+  "scripts": {
+    "build:web": "npm --prefix apps/web run build",
+    "dev:web": "npm --prefix apps/web run dev",
+    "test:unit": "python -m unittest discover tests/unit",
+    "test:e2e": "python -m unittest discover tests/e2e",
+    "start:api": "python -m uvicorn finn.main:app --app-dir apps/api --reload --port 8000"
+  }
+}

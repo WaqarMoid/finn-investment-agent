@@ -1,0 +1,27 @@
+services:
+  finn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: finn:latest
+    container_name: finn-app
+    ports:
+      - "8000:8000"
+    environment:
+      - FINN_ENV=production
+      - DATA_DIR=/data
+      - DATABASE_PATH=/data/finn.db
+      - SESSION_SECRET=compose-dev-session-secret-change-in-production
+      - WORKER_ENABLED=true
+    volumes:
+      - finn-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  finn-data:
+    name: finn_data
