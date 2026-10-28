@@ -14,6 +14,7 @@ from finn.api.companies import router as companies_router
 from finn.api.watchlist import router as watchlist_router
 from finn.api.evidence import router as evidence_router
 from finn.api.prices import router as prices_router
+from finn.api.filings import router as filings_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,6 +75,7 @@ app.include_router(companies_router, prefix="/api/v1")
 app.include_router(watchlist_router, prefix="/api/v1")
 app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(prices_router, prefix="/api/v1")
+app.include_router(filings_router)
 
 # Static frontend serving
 web_dist_path = Path(__file__).resolve().parent.parent.parent / "web" / "dist"
