@@ -1,0 +1,26 @@
+{
+  "repo": "anthropics/skills",
+  "sha": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+  "paths": [
+    "skills/academy-guide/SKILL.md",
+    "skills/algorithmic-art/SKILL.md",
+    "skills/brand-guidelines/SKILL.md",
+    "skills/canvas-design/SKILL.md",
+    "skills/claude-api/SKILL.md",
+    "skills/discernment-nudge/SKILL.md",
+    "skills/doc-coauthoring/SKILL.md",
+    "skills/docx/SKILL.md",
+    "skills/frontend-design/SKILL.md",
+    "skills/internal-comms/SKILL.md",
+    "skills/mcp-builder/SKILL.md",
+    "skills/pdf/SKILL.md",
+    "skills/pptx/SKILL.md",
+    "skills/skill-creator/SKILL.md",
+    "skills/slack-gif-creator/SKILL.md",
+    "skills/theme-factory/SKILL.md",
+    "skills/web-artifacts-builder/SKILL.md",
+    "skills/webapp-testing/SKILL.md",
+    "skills/xlsx/SKILL.md",
+    "template/SKILL.md"
+  ]
+}

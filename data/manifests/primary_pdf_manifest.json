@@ -1,0 +1,33 @@
+{
+  "manifest_version": "1.0.0",
+  "created_at_utc": "2026-10-28T09:16:00Z",
+  "company": {
+    "name": "Infosys Limited",
+    "symbol_nse": "INFY",
+    "isin": "INE009A01021",
+    "bse_scrip": "500209"
+  },
+  "documents": [
+    {
+      "document_id": "doc_infy_q4_fy24_transcript",
+      "title": "Infosys Limited Earnings Conference Call Transcript Q4 FY24",
+      "document_type": "transcript",
+      "fiscal_period": "Q4_FY24",
+      "fiscal_year": "FY2024",
+      "source_url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf",
+      "local_path": "tests/fixtures/source/INFY_Q4_FY24_earningscall.pdf",
+      "sha256": "ab268076b83ea82bd0acb419f3e25fd39c5dad9dd7cdf0521fec99e43b26596f",
+      "file_size_bytes": 284498,
+      "page_count": 28,
+      "event_date": "2024-04-18",
+      "extracted_verification": {
+        "key_speakers": [
+          "Salil Parekh (CEO)",
+          "Jayesh Sanghrajka (CFO)"
+        ],
+        "guidance_excerpt_page": 4,
+        "guidance_excerpt": "revenue growth guidance for FY 25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY 25 is 20% to 22%."
+      }
+    }
+  ]
+}

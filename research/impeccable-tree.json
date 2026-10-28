@@ -1,0 +1,32 @@
+{
+  "repo": "pbakaus/impeccable",
+  "sha": "3e3a9179e01a60265000ce239c0a99803ec1e60d",
+  "paths": [
+    ".agent/skills/impeccable/SKILL.md",
+    ".agents/skills/impeccable/SKILL.md",
+    ".claude/skills/impeccable/SKILL.md",
+    ".cursor/skills/impeccable/SKILL.md",
+    ".devin/skills/impeccable/SKILL.md",
+    ".dsh/skills/impeccable/SKILL.md",
+    ".gemini/skills/impeccable/SKILL.md",
+    ".github/skills/impeccable/SKILL.md",
+    ".grok/skills/impeccable/SKILL.md",
+    ".hermes/skills/impeccable/SKILL.md",
+    ".kiro/skills/impeccable/SKILL.md",
+    ".omp/skills/impeccable/SKILL.md",
+    ".opencode/skills/impeccable/SKILL.md",
+    ".pi/skills/impeccable/SKILL.md",
+    ".qoder/skills/impeccable/SKILL.md",
+    ".rovodev/skills/impeccable/SKILL.md",
+    ".trae-cn/skills/impeccable/SKILL.md",
+    ".trae/skills/impeccable/SKILL.md",
+    ".veto/skills/impeccable/SKILL.md",
+    ".vibe/skills/impeccable/SKILL.md",
+    "cursor-plugin/skills/impeccable/SKILL.md",
+    "plugin/skills/impeccable/SKILL.md",
+    "tests/oracle/workspaces/ctx-pin/.agents/skills/impeccable/SKILL.md",
+    "tests/oracle/workspaces/ctx-pin/.claude/skills/audit/SKILL.md",
+    "tests/oracle/workspaces/ctx-pin/.claude/skills/impeccable/SKILL.md",
+    "tests/oracle/workspaces/ctx-pin/.cursor/skills/impeccable/SKILL.md"
+  ]
+}
