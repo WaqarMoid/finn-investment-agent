@@ -1,16 +1,36 @@
 import os
 import uuid
 from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+
+from finn.db.database import init_db, get_connection
+from finn.db.repository import DataRepository
 from finn.api.health import router as health_router
+from finn.api.companies import router as companies_router
+from finn.api.watchlist import router as watchlist_router
+from finn.api.evidence import router as evidence_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize SQLite WAL database and seed candidate companies master
+    init_db()
+    conn = get_connection()
+    try:
+        repo = DataRepository(conn)
+        repo.seed_master_data()
+    finally:
+        conn.close()
+    yield
 
 app = FastAPI(
     title="FINN Portfolio Briefing API",
     description="Evidence-First Portfolio Briefing & Management Guidance Ledger Engine",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # CORS configuration
@@ -49,6 +69,9 @@ async def session_middleware(request: Request, call_next):
 
 # API v1 routes
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(companies_router, prefix="/api/v1")
+app.include_router(watchlist_router, prefix="/api/v1")
+app.include_router(evidence_router, prefix="/api/v1")
 
 # Static frontend serving
 web_dist_path = Path(__file__).resolve().parent.parent.parent / "web" / "dist"

@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T09:29:00Z (Asia/Kolkata: 2026-10-28T14:59:00+05:30)  
-**Current Milestone:** Completed T01 -> Proceeding to T02  
-**Repository State:** Scaffolding complete; React 18 / Vite 5 frontend built; FastAPI backend operational; Playwright mobile E2E tests at 390px passing; Docker / Compose configured.
+**Last Updated:** 2026-10-28T09:39:00Z (Asia/Kolkata: 2026-10-28T15:09:00+05:30)  
+**Current Milestone:** Completed T02 -> Proceeding to T03  
+**Repository State:** Database migrations, foreign key constraints, company resolver (22 candidate companies, ISIN, BSE, aliases), immutable source document/page/evidence storage, and session-isolated watchlist completed and verified.
 
 ---
 
@@ -12,8 +12,8 @@
 |---|---|---|---|---|
 | **T00** | Source feasibility and runtime spike | **COMPLETED** | 2026-10-28T09:18:00Z | 3/3 source classes verified with real network calls; 3 fixtures saved; primary PDF downloaded and text extracted; hosting evaluated; gate passed. |
 | **T01** | Repo, shell and first deployment | **COMPLETED** | 2026-10-28T09:29:00Z | React/TS frontend (Vite), FastAPI API, lockfiles, `.env.example`, Dockerfile/Compose, unit tests, Playwright 390px mobile navigation shell, deep-link reload passing. |
-| **T02** | Database, identity and evidence backbone | *NEXT* | Pending | Migrations, company resolver, 18 candidate holdings, session watchlist, FTS5 schema. |
-| **T03** | Price adapter and deterministic calculations | *Queued* | Pending | EOD daily-bar adapter, volume baseline, price move delta, zero/missing handling. |
+| **T02** | Database, identity and evidence backbone | **COMPLETED** | 2026-10-28T09:39:00Z | Clean DB migration & rerun; foreign keys enforced; 22 candidate holdings seeded; exact symbol, ISIN, BSE code & alias resolver; immutable document/evidence storage; session-isolated watchlists passing. |
+| **T03** | Price adapter and deterministic calculations | *NEXT* | Pending | EOD daily-bar adapter, volume baseline, price move delta, zero/missing handling. |
 | **T04** | Exchange ingestion and reliable jobs | *Queued* | Pending | NSE announcement adapter, attachment jobs, deduplication, worker leases. |
 | **T05** | Materiality and alerts | *Queued* | Pending | 17-category taxonomy, ranking tiers, safety overrides, session rules, preview. |
 | **T06** | Complete briefing vertical slice | *Queued* | Pending | Briefing UI, 24h/7d presets, priority groups, evidence drawer, alert inbox. |
@@ -25,62 +25,44 @@
 
 ---
 
-## 2. Details of Completed Packet: T01
+## 2. Details of Completed Packet: T02
 
 ### Changed / Created Files
-- `apps/web/package.json` & `apps/web/package-lock.json`: Frontend workspace dependencies (React 18.3.1, Vite 5.4.11, TypeScript 5.6.3).
-- `apps/web/tsconfig.json` & `apps/web/vite.config.ts`: TypeScript compiler configuration and Vite build/proxy configuration.
-- `apps/web/index.html`: Responsive viewport configuration (`viewport-fit=cover`), IBM Plex Sans font linking.
-- `apps/web/src/styles/tokens.css`: Shared design tokens (`--canvas`, `--surface`, `--ink`, `--muted`, `--accent`, `--positive`, `--negative`, `--space-*`, `--radius-*`).
-- `apps/web/src/styles/layout.css`: Mobile-first shell layout, sticky header, bottom navigation bar (60px height, >=44px touch targets), desktop rail media queries.
-- `apps/web/src/features/briefing/BriefingScreen.tsx`: Briefing destination with severity tiers (Needs Attention, Worth a Look, Routine), time presets (24h, 7d, Custom), and labeled synthetic preview fixtures.
-- `apps/web/src/features/research/ResearchScreen.tsx`: Research destination featuring the signature 4-quarter Management Guidance Ledger (Stated / Reported / Assessment), search input, and dual evidence inspection triggers.
-- `apps/web/src/features/watchlist/WatchlistScreen.tsx`: Session-isolated alert threshold form (Price move %, Volume multiple) and 18-company monitored holdings table.
-- `apps/web/src/components/evidence/EvidenceDrawer.tsx`: Accessible evidence drawer sheet with focus trap, Escape key listener, verbatim excerpt quote, PDF page indicator, and primary PDF link.
-- `apps/web/src/App.tsx` & `apps/web/src/main.tsx`: Root application shell coordinating hash-based deep links and API readiness detection.
-- `apps/api/finn/__init__.py`: API package initialization.
-- `apps/api/finn/schemas/health.py`: Pydantic health schema with version, ISO-8601 UTC timestamp, operational mode, and readiness flags.
-- `apps/api/finn/api/health.py`: `/api/v1/health/live` and `/api/v1/health/ready` endpoints checking local SQLite accessibility and FTS5 availability.
-- `apps/api/finn/main.py`: FastAPI application entrypoint with anonymous session cookie middleware (`finn_session_id`), CORS, `/api/v1` routes, and static SPA serving for `apps/web/dist`.
-- `apps/api/requirements.txt` & `apps/api/requirements.lock`: Python dependencies and pinned versions.
-- `Dockerfile`: Multi-stage production container build (Stage 1: Node 20 SPA build, Stage 2: Python 3.12 slim runner with curl healthcheck).
-- `compose.yaml`: Docker Compose service configuration with persistent `/data` volume.
-- `.env.example`: Safe configuration template.
-- `.gitignore`: Ignoring build artifacts, node_modules, `data/*.db`, and secrets.
-- `package.json`: Monorepo root workspace scripts.
-- `README.md`: Architecture overview, local setup, Docker deployment, and testing instructions.
-- `tests/unit/test_health.py`: Unit tests for health routes, session cookie isolation, and SPA serving.
-- `tests/e2e/test_mobile_shell.py`: Playwright mobile E2E test verifying 390px viewport, navigation touch targets (>=44px), deep-link reload, and Evidence Drawer modal.
+- `apps/api/finn/db/schema.sql`: Complete SQLite DDL with WAL mode, foreign keys, FTS5 virtual table (`chunks_fts`), and all core relational entities (`companies`, `securities`, `company_aliases`, `sessions`, `watchlist_members`, `source_documents`, `source_pages`, `evidence_spans`, `document_chunks`, `announcements`, `event_groups`, `price_bars`, `financial_facts`, `derivations`, `guidance_statements`, `guidance_assessments`, `notification_rules`, `alerts`, `jobs`, `sync_runs`).
+- `apps/api/finn/db/database.py`: Connection manager (`get_connection`), SQLite busy timeout (5000ms), and idempotent migration executor (`init_db`).
+- `apps/api/finn/db/seed_data.py`: Validated candidate master for the 18 portfolio holdings + 4 ad-hoc research test companies (`INFY`, `TCS`, `HCLTECH`, `RELIANCE`, `HDFCBANK`, `ICICIBANK`, `HINDUNILVR`, `ITC`, `LT`, `SUNPHARMA`, `DRREDDY`, `MARUTI`, `TITAN`, `ULTRACEMCO`, `NTPC`, `TATASTEEL`, `PERSISTENT`, `KAYNES`, `CERA`, `COFORGE`, `DIXON`, `ASTRAL`) with exact ISINs, official websites, and IR domains.
+- `apps/api/finn/db/resolver.py`: `CompanyResolver` prioritizing exact symbol matches, ISIN, and BSE scrip codes before alias lookups; handles `.NS` and `.BO` suffixes cleanly; returns unambiguous match, ambiguous candidates list, or unknown.
+- `apps/api/finn/db/repository.py`: `DataRepository` handling master seeding, session creation, session-isolated watchlist CRUD, immutable source document storage with SHA-256 hashes, 1-based page records, evidence spans, and evidence retrieval.
+- `apps/api/finn/api/companies.py`: `GET /api/v1/companies?q=...` company resolution endpoint.
+- `apps/api/finn/api/watchlist.py`: `GET /api/v1/watchlist`, `POST /api/v1/watchlist`, `DELETE /api/v1/watchlist/{company_id}` endpoints scoped by `finn_session_id`.
+- `apps/api/finn/api/evidence.py`: `GET /api/v1/evidence/{evidence_id}` endpoint returning verified verbatim excerpts, PDF page numbers, and primary document metadata.
+- `apps/api/finn/main.py`: Updated lifespan to initialize DB and seed master data on startup; registered new API routers.
+- `tests/contracts/test_db_and_resolver.py`: 9 contract tests verifying migration idempotency, foreign key enforcement, symbol/ISIN/BSE/alias resolution, ambiguous/unknown handling, document/evidence provenance, and multi-session watchlist isolation.
 
 ### Checks Actually Run & Results
 
-1. **Frontend Typecheck & Build:**
-   - Command: `cd apps/web; npm run build`
-   - Result: `tsc` typecheck passed with zero errors; Vite built production bundle (`dist/index.html` 0.78 kB, `dist/assets/index-*.css` 4.47 kB, `dist/assets/index-*.js` 167.99 kB in 608ms).
-2. **Backend Unit Tests:**
+1. **Database & Resolver Contract Tests (`tests/contracts/test_db_and_resolver.py`):**
+   - Command: `python -m unittest tests/contracts/test_db_and_resolver.py`
+   - Result: 9 tests passed in 0.354s.
+     - `test_migration_idempotency`: Rerun DDL on populated DB succeeded without errors.
+     - `test_foreign_key_enforcement`: Inserting security for non-existent company raised `sqlite3.IntegrityError`.
+     - `test_candidate_holdings_seeded`: Verified $\ge 18$ candidate companies populated.
+     - `test_resolver_exact_symbol_and_suffixes`: Verified `INFY`, `infy.ns`, `TCS.BO` resolve to exact companies.
+     - `test_resolver_bse_code_and_isin`: Verified BSE scrip `500209` and ISIN `INE009A01021` resolve directly.
+     - `test_resolver_aliases`: Verified `HCL Tech` resolves to `INE860A01027`.
+     - `test_resolver_unknown_and_ambiguous`: Verified unknown entities and ambiguous queries (`Limited`) return structured candidate lists rather than throwing or picking arbitrary records.
+     - `test_evidence_backbone_and_provenance`: Verified immutable document insert, 1-based page index, and evidence span retrieval.
+     - `test_session_watchlist_isolation`: Verified Session A and Session B maintain completely independent watchlists; edits in one do not mutate the other.
+2. **Full Workspace Regression (`discover -s tests`):**
    - Command: `python -m unittest discover -s tests`
-   - Result: 4 unit tests passed in 0.076s.
-     - `test_health_live`: Status 200, status "ok", version "0.1.0", UTC timestamp present, process alive.
-     - `test_health_ready`: Status 200, database accessible, FTS5 extension available.
-     - `test_session_cookie_isolation`: Status 200, `finn_session_id` cookie emitted.
-     - `test_spa_serving`: Status 200, SPA HTML served at root `/`.
-3. **Playwright Mobile E2E Test at 390px Viewport:**
-   - Command: `python -m unittest tests/e2e/test_mobile_shell.py`
-   - Result: 1 E2E test passed in 5.752s.
-     - Viewport set to 390x844 (iPhone standard).
-     - Verified zero horizontal overflow (`scrollWidth == clientWidth`).
-     - Verified all 3 bottom navigation items have bounding box height >= 44px (WCAG/FINN mobile touch target requirement).
-     - Verified navigation to Research tab updates URL to `#/research` and renders Guidance Ledger.
-     - Verified clicking "Inspect Dual Evidence" opens Evidence Drawer sheet.
-     - Verified drawer closes on close button.
-     - Verified direct deep-link reload (`/#/research`) restores the Research destination.
+   - Result: 14 tests passed in 6.263s (Unit + Contracts + Playwright 390px E2E).
 
 ### Unresolved Issues & Known Gaps
-- None for T01. All T01 gate criteria are satisfied.
+- None. All T02 gate criteria satisfied.
 
 ---
 
-## 3. Next Packet: T02 — Database, identity and evidence backbone
+## 3. Next Packet: T03 — Price adapter and deterministic calculations
 
 **Objective:**
-Implement database migrations, SQLite WAL schema, company/security resolver for candidate holdings (including INFY, TCS, HCLTECH, etc.), immutable source document & source page storage, evidence span lookup, and session-scoped watchlist repository.
+Implement the price adapter interface (`PriceAdapter`), live Yahoo Finance adapter, fixture adapter (`tests/fixtures/source/infy_eod_sample.json`), completed-session handling, volume baseline (mean of previous 20 completed sessions excluding today), price move delta calculation, corporate action adjustment policies, and unit tests covering edge cases (zero/negative/missing data, exactly-2x volume threshold, weekends, provider revision).
