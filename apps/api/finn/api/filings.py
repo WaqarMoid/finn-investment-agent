@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
@@ -87,6 +88,15 @@ def get_filings(
 @router.post("/api/v1/refresh")
 def refresh_sources(request: Request) -> Dict[str, Any]:
     session_id = getattr(request.state, "session_id", "default_session")
+
+    # In replay mode, bypass external network polling
+    if os.getenv("FINN_MODE", "live").lower() == "replay":
+        return {
+            "status": "replay_active",
+            "message": "FINN is running in historical replay mode (clock fixed at 2024-10-18). Live exchange synchronization is disabled.",
+            "mode": "replay"
+        }
+
     now_ts = datetime.now(timezone.utc).timestamp()
 
     # Rate limiting: max 1 refresh every 10 seconds per session

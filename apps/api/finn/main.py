@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
@@ -73,6 +74,16 @@ async def session_middleware(request: Request, call_next):
         session_id = str(uuid.uuid4())
         is_new = True
     
+    # Ensure session exists in SQLite sessions table
+    now_utc = datetime.now(timezone.utc).isoformat()
+    expires_utc = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+    conn = get_connection()
+    try:
+        conn.execute("INSERT OR IGNORE INTO sessions (id, created_at_utc, expires_at_utc) VALUES (?, ?, ?)", (session_id, now_utc, expires_utc))
+        conn.commit()
+    finally:
+        conn.close()
+
     # Store session_id on request state for endpoint handlers
     request.state.session_id = session_id
     

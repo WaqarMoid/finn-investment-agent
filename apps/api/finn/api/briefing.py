@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
@@ -17,11 +18,22 @@ def get_briefing(
         now = datetime.now(timezone.utc)
         now_utc = now.isoformat()
 
-        # Default to last 24 hours if window not provided
-        if not end:
-            end = now_utc
-        if not start:
-            start = (now - timedelta(days=1)).isoformat()
+        mode = os.getenv("FINN_MODE", "live").lower()
+        is_replay = mode == "replay"
+
+        # In replay mode, fix clock to historical Q2 FY25 cutoff (2024-10-18)
+        if is_replay:
+            replay_cutoff = "2024-10-18T23:59:59Z"
+            if not end:
+                end = replay_cutoff
+            if not start:
+                start = "2024-10-01T00:00:00Z"
+        else:
+            # Default to last 24 hours if window not provided
+            if not end:
+                end = now_utc
+            if not start:
+                start = (now - timedelta(days=1)).isoformat()
 
         # Query event groups within date window
         # event_date is YYYY-MM-DD
@@ -84,10 +96,12 @@ def get_briefing(
 
         coverage = {
             "requested_window": {"start_utc": start, "end_utc": end},
-            "mode": "live",
-            "last_updated_utc": sync_row["fetched_at_utc"] if sync_row else now_utc,
-            "source_status": sync_row["status"] if sync_row else "nominal",
-            "is_partial": (sync_row["status"] == "partial") if sync_row else False
+            "mode": mode,
+            "is_replay": is_replay,
+            "historical_label": "Historical Replay (Oct 18, 2024 — Q2 FY25 Results Season)" if is_replay else None,
+            "last_updated_utc": "2024-10-18T18:00:00Z" if is_replay else (sync_row["fetched_at_utc"] if sync_row else now_utc),
+            "source_status": "replay_snapshot" if is_replay else (sync_row["status"] if sync_row else "nominal"),
+            "is_partial": False if is_replay else ((sync_row["status"] == "partial") if sync_row else False)
         }
 
         summary = {

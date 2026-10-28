@@ -53,8 +53,16 @@ class AnnouncementIngestionService:
         sync_id = f"sync-{uuid.uuid4()}"
         now_utc = datetime.now(timezone.utc).isoformat()
         
-        # 1. Fetch from adapter
-        result = adapter.fetch_announcements(start_date=start_date, end_date=end_date, max_pages=max_pages)
+        # 1. Fetch from adapter with exception safety
+        try:
+            result = adapter.fetch_announcements(start_date=start_date, end_date=end_date, max_pages=max_pages)
+        except Exception as e:
+            result = {
+                "records": [],
+                "pages_fetched": 0,
+                "status": "failed",
+                "error": f"Upstream adapter error: {str(e)}"
+            }
         records: List[AnnouncementRecord] = result["records"]
         status = result["status"]
         error = result["error"]

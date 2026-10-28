@@ -36,6 +36,7 @@ interface BriefingData {
 export default function BriefingScreen() {
   const [windowPreset, setWindowPreset] = useState<"24h" | "7d" | "custom">("24h");
   const [data, setData] = useState<BriefingData | null>(null);
+  const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
@@ -64,6 +65,7 @@ export default function BriefingScreen() {
       })
       .then((json) => {
         setData(json.data);
+        setMeta(json.meta);
         setLoading(false);
       })
       .catch((err) => {
@@ -99,12 +101,31 @@ export default function BriefingScreen() {
 
   return (
     <div className="briefing-screen">
+      {/* Historical Replay Banner if in replay mode */}
+      {meta?.is_replay && (
+        <div style={{
+          background: "#E8F0FE",
+          border: "1px solid #C2E7FF",
+          padding: "8px 12px",
+          borderRadius: "var(--radius-control)",
+          fontSize: "0.8125rem",
+          color: "#001D35",
+          marginBottom: "var(--space-3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
+          <span><strong>Historical Replay:</strong> As of {meta.last_updated_utc ? meta.last_updated_utc.substring(0, 10) : "2024-10-18"} (Q2 FY25 Season). External sync disabled.</span>
+          <span className="badge" style={{ background: "#004A77", color: "#fff", fontWeight: 700 }}>REPLAY CLOCK</span>
+        </div>
+      )}
+
       {/* Header & Controls */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: "8px" }}>
         <div>
           <h1 style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--ink)" }}>Portfolio Briefing</h1>
           <p style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>
-            18 monitored companies &bull; Mode: <strong>Live / IST</strong>
+            18 monitored companies &bull; Mode: <strong>{meta?.is_replay ? "Historical Replay" : "Live / IST"}</strong>
           </p>
         </div>
 

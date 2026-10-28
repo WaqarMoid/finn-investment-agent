@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T10:20:00Z (Asia/Kolkata: 2026-10-28T15:50:00+05:30)  
-**Current Milestone:** Completed T10 -> Proceeding to T11  
-**Repository State:** Generalization gate verified across 3 held-out tickers (`COFORGE`, `DIXON`, `ASTRAL`), generic FTS5 chunk retrieval, bounded question answering with exact page citations, honest missing-data limitations, and 65 passing automated tests.
+**Last Updated:** 2026-10-28T10:30:00Z (Asia/Kolkata: 2026-10-28T16:00:00Z)  
+**Current Milestone:** Completed T11 -> Proceeding to T12 / T13 & Final Release  
+**Repository State:** Historical replay clock (`FINN_MODE=replay`), rate limiting (HTTP 429 cooldown), crash recovery of expired leases, failure injection resilience, session isolation, and 70 passing automated tests.
 
 ---
 
@@ -21,7 +21,44 @@
 | **T08** | Structured extraction and financial facts | **COMPLETED** | 2026-10-28T09:59:00Z | Financial fact normalization to INR crore, deterministic growth deltas, margin percentage points (+3 pp), bank EBITDA suppression, Q4 = FY - 9M derivation citing both operands, token/cost instrumentation, and repeat-call caching passing. |
 | **T09** | Guidance ledger and first research report | **COMPLETED** | 2026-10-28T10:15:00Z | 4-quarter verified guidance ledger for INFY & HCLTECH; deterministic match verdicts (met/exceeded/missed/not_due/qualitative_supported); dual evidence drawer inspection; bounded Q&A; mobile Research screen passing. |
 | **T10** | Generalization and bounded questions | **COMPLETED** | 2026-10-28T10:20:00Z | Generalization evaluation across 3 held-out tickers (COFORGE, DIXON, ASTRAL); generic FTS5 chunk retrieval; bounded question answering with exact page citations; honest empty ledger and missing data limitations passing. |
-| **T11** | Replay and resilience | *NEXT* | Pending | Historical replay clock, failure injection, session isolation. |
+| **T11** | Replay and resilience | **COMPLETED** | 2026-10-28T10:30:00Z | Fixed historical replay clock, visible UI replay banner, 10s refresh rate limit (HTTP 429), worker lease crash recovery, HTTP 503 failure injection tolerance, and session isolation passing. |
+| **T12 / T13** | Design refinement, final evaluation and release | *NEXT* | In Progress | Full release verification, tested clean-clone instructions, SUBMISSION_DRAFT.md completion. |
+
+---
+
+## 2. Details of Completed Packet: T11
+
+### Changed / Created Files
+- `apps/api/finn/api/briefing.py`: Added support for `FINN_MODE=replay` with fixed historical cutoff clock (`2024-10-18T23:59:59Z`), `coverage.is_replay = True`, and historical label metadata.
+- `apps/api/finn/api/filings.py`: Rate limiting cooldown check (10 seconds) and replay mode interceptor bypassing live network polling.
+- `apps/api/finn/ingestion/announcements.py`: Exception-safe ingestion catching network failures and recording failed sync runs gracefully.
+- `apps/api/finn/main.py`: Session middleware ensuring session row exists in database for relational integrity.
+- `apps/web/src/features/briefing/BriefingScreen.tsx`: Added visible Historical Replay banner when `meta.is_replay` is active.
+- `tests/unit/test_resilience.py`: 5 unit tests verifying replay mode with fixed clock, refresh rate limiting (HTTP 429), failure injection without crashing, worker crash recovery via stale lease reclamation, and session isolation across independent cookies.
+
+### Checks Actually Run & Results
+1. **Replay & Resilience Unit Tests (`tests/unit/test_resilience.py`):**
+   - Command: `python -m unittest tests/unit/test_resilience.py`
+   - Result: 5 tests passed in 1.482s.
+     - Verified replay mode sets fixed cutoff date `2024-10-18` and returns `replay_active` without outbound network calls.
+     - Verified rapid consecutive calls to `/api/v1/refresh` trigger HTTP 429.
+     - Verified HTTP 503 failure injection is handled gracefully without crashing the service or corrupting SQLite state.
+     - Verified dead worker lease is reclaimed and job returned to queued state upon recovery.
+     - Verified concurrent sessions maintain completely isolated watchlists and alert thresholds.
+2. **All Unit & Contract Tests:**
+   - Command: `python -m unittest discover -s tests/unit` & `python -m unittest discover -s tests/contracts`
+   - Result: 67 tests passed.
+3. **Full Playwright Mobile E2E Suite (`tests/e2e/`):**
+   - Command: `python -m unittest discover -s tests/e2e`
+   - Result: 3 tests passed in 13.098s.
+4. **Total Automated Tests Passing:** 70 tests across the workspace.
+
+### Unresolved Issues & Known Gaps
+- None. All T11 gate criteria satisfied.
+
+---
+
+## 3. Next Packet: T12 / T13 — Design refinement, final evaluation and release
 
 ---
 
