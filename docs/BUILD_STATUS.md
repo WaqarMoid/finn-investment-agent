@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T09:39:00Z (Asia/Kolkata: 2026-10-28T15:09:00+05:30)  
-**Current Milestone:** Completed T02 -> Proceeding to T03  
-**Repository State:** Database migrations, foreign key constraints, company resolver (22 candidate companies, ISIN, BSE, aliases), immutable source document/page/evidence storage, and session-isolated watchlist completed and verified.
+**Last Updated:** 2026-10-28T09:43:00Z (Asia/Kolkata: 2026-10-28T15:13:00+05:30)  
+**Current Milestone:** Completed T03 -> Proceeding to T04  
+**Repository State:** Price adapter interface, offline fixture adapter, live Yahoo Finance adapter, deterministic price/volume calculations with exact threshold boundary logic, split adjustments, and price bar database storage completed and verified.
 
 ---
 
@@ -13,8 +13,8 @@
 | **T00** | Source feasibility and runtime spike | **COMPLETED** | 2026-10-28T09:18:00Z | 3/3 source classes verified with real network calls; 3 fixtures saved; primary PDF downloaded and text extracted; hosting evaluated; gate passed. |
 | **T01** | Repo, shell and first deployment | **COMPLETED** | 2026-10-28T09:29:00Z | React/TS frontend (Vite), FastAPI API, lockfiles, `.env.example`, Dockerfile/Compose, unit tests, Playwright 390px mobile navigation shell, deep-link reload passing. |
 | **T02** | Database, identity and evidence backbone | **COMPLETED** | 2026-10-28T09:39:00Z | Clean DB migration & rerun; foreign keys enforced; 22 candidate holdings seeded; exact symbol, ISIN, BSE code & alias resolver; immutable document/evidence storage; session-isolated watchlists passing. |
-| **T03** | Price adapter and deterministic calculations | *NEXT* | Pending | EOD daily-bar adapter, volume baseline, price move delta, zero/missing handling. |
-| **T04** | Exchange ingestion and reliable jobs | *Queued* | Pending | NSE announcement adapter, attachment jobs, deduplication, worker leases. |
+| **T03** | Price adapter and deterministic calculations | **COMPLETED** | 2026-10-28T09:43:00Z | Price adapter interface, live & fixture adapters; volume baseline (prior 20 completed sessions excluding today); price delta; zero/negative/missing data; strictly-greater-than 5% and 2.0x threshold gates; stock split adjustment; live integration smoke check passing. |
+| **T04** | Exchange ingestion and reliable jobs | *NEXT* | Pending | NSE announcement adapter, attachment jobs, deduplication, worker leases. |
 | **T05** | Materiality and alerts | *Queued* | Pending | 17-category taxonomy, ranking tiers, safety overrides, session rules, preview. |
 | **T06** | Complete briefing vertical slice | *Queued* | Pending | Briefing UI, 24h/7d presets, priority groups, evidence drawer, alert inbox. |
 | **T07** | Primary document discovery and parsing | *Queued* | Pending | Generic IR discovery, PDF page extraction, chunking, FTS5 index. |
@@ -25,44 +25,46 @@
 
 ---
 
-## 2. Details of Completed Packet: T02
+## 2. Details of Completed Packet: T03
 
 ### Changed / Created Files
-- `apps/api/finn/db/schema.sql`: Complete SQLite DDL with WAL mode, foreign keys, FTS5 virtual table (`chunks_fts`), and all core relational entities (`companies`, `securities`, `company_aliases`, `sessions`, `watchlist_members`, `source_documents`, `source_pages`, `evidence_spans`, `document_chunks`, `announcements`, `event_groups`, `price_bars`, `financial_facts`, `derivations`, `guidance_statements`, `guidance_assessments`, `notification_rules`, `alerts`, `jobs`, `sync_runs`).
-- `apps/api/finn/db/database.py`: Connection manager (`get_connection`), SQLite busy timeout (5000ms), and idempotent migration executor (`init_db`).
-- `apps/api/finn/db/seed_data.py`: Validated candidate master for the 18 portfolio holdings + 4 ad-hoc research test companies (`INFY`, `TCS`, `HCLTECH`, `RELIANCE`, `HDFCBANK`, `ICICIBANK`, `HINDUNILVR`, `ITC`, `LT`, `SUNPHARMA`, `DRREDDY`, `MARUTI`, `TITAN`, `ULTRACEMCO`, `NTPC`, `TATASTEEL`, `PERSISTENT`, `KAYNES`, `CERA`, `COFORGE`, `DIXON`, `ASTRAL`) with exact ISINs, official websites, and IR domains.
-- `apps/api/finn/db/resolver.py`: `CompanyResolver` prioritizing exact symbol matches, ISIN, and BSE scrip codes before alias lookups; handles `.NS` and `.BO` suffixes cleanly; returns unambiguous match, ambiguous candidates list, or unknown.
-- `apps/api/finn/db/repository.py`: `DataRepository` handling master seeding, session creation, session-isolated watchlist CRUD, immutable source document storage with SHA-256 hashes, 1-based page records, evidence spans, and evidence retrieval.
-- `apps/api/finn/api/companies.py`: `GET /api/v1/companies?q=...` company resolution endpoint.
-- `apps/api/finn/api/watchlist.py`: `GET /api/v1/watchlist`, `POST /api/v1/watchlist`, `DELETE /api/v1/watchlist/{company_id}` endpoints scoped by `finn_session_id`.
-- `apps/api/finn/api/evidence.py`: `GET /api/v1/evidence/{evidence_id}` endpoint returning verified verbatim excerpts, PDF page numbers, and primary document metadata.
-- `apps/api/finn/main.py`: Updated lifespan to initialize DB and seed master data on startup; registered new API routers.
-- `tests/contracts/test_db_and_resolver.py`: 9 contract tests verifying migration idempotency, foreign key enforcement, symbol/ISIN/BSE/alias resolution, ambiguous/unknown handling, document/evidence provenance, and multi-session watchlist isolation.
+- `apps/api/finn/adapters/price_adapter.py`: `PriceBar` schema (session date, OHLCV, adjusted close, provider, revision), `PriceAdapter` abstract interface, `FixturePriceAdapter` (reads offline fixture JSON), and `YahooPriceAdapter` (HTTPX client hitting Yahoo Finance `/v8/finance/chart`).
+- `apps/api/finn/finance/calculations.py`:
+  - `calculate_price_move`: Deterministic Decimal calculation, strictly-greater-than 5.0% threshold check, handles zero/negative baseline and insufficient history.
+  - `calculate_volume_spike`: Excludes today's bar, calculates mean of prior 20 completed sessions, strictly-greater-than 2.0x threshold check, handles zero baseline and insufficient history (<20 sessions).
+  - `adjust_for_stock_split`: Historical price/volume adjustment for corporate actions (e.g. 2:1 split).
+- `apps/api/finn/db/repository.py`: Added `store_price_bars` and `get_price_bars` with revision-based deduplication and session date indexing.
+- `apps/api/finn/api/prices.py`: `GET /api/v1/companies/{company_id}/prices` endpoint returning daily bars, price delta, and volume spike analysis.
+- `apps/api/finn/main.py`: Registered `prices_router`.
+- `tests/unit/test_price_calculations.py`: 9 offline unit tests covering normal price move, exactly-5% threshold, exactly-2x volume multiple, prior-20 volume exclusion, insufficient history, zero/negative baseline, weekend session gaps, stock split adjustment, and fixture parsing.
+- `tests/integration/test_price_live_smoke.py`: Separately marked integration test exercising the live Yahoo Finance endpoint for `INFY.NS`.
 
 ### Checks Actually Run & Results
 
-1. **Database & Resolver Contract Tests (`tests/contracts/test_db_and_resolver.py`):**
-   - Command: `python -m unittest tests/contracts/test_db_and_resolver.py`
-   - Result: 9 tests passed in 0.354s.
-     - `test_migration_idempotency`: Rerun DDL on populated DB succeeded without errors.
-     - `test_foreign_key_enforcement`: Inserting security for non-existent company raised `sqlite3.IntegrityError`.
-     - `test_candidate_holdings_seeded`: Verified $\ge 18$ candidate companies populated.
-     - `test_resolver_exact_symbol_and_suffixes`: Verified `INFY`, `infy.ns`, `TCS.BO` resolve to exact companies.
-     - `test_resolver_bse_code_and_isin`: Verified BSE scrip `500209` and ISIN `INE009A01021` resolve directly.
-     - `test_resolver_aliases`: Verified `HCL Tech` resolves to `INE860A01027`.
-     - `test_resolver_unknown_and_ambiguous`: Verified unknown entities and ambiguous queries (`Limited`) return structured candidate lists rather than throwing or picking arbitrary records.
-     - `test_evidence_backbone_and_provenance`: Verified immutable document insert, 1-based page index, and evidence span retrieval.
-     - `test_session_watchlist_isolation`: Verified Session A and Session B maintain completely independent watchlists; edits in one do not mutate the other.
-2. **Full Workspace Regression (`discover -s tests`):**
+1. **Price Calculation Unit Tests (`tests/unit/test_price_calculations.py`):**
+   - Command: `python -m unittest tests/unit/test_price_calculations.py`
+   - Result: 9 tests passed in 0.005s (zero network requests, fully offline).
+     - Verified move of 5.00% is NOT an alert; 5.01% is an alert (strictly greater rule).
+     - Verified volume multiple of 2.00x is NOT an alert; 2.01x is an alert (strictly greater rule).
+     - Verified today's volume is excluded from the 20-day mean baseline.
+     - Verified insufficient history returns `is_alert: False`.
+     - Verified zero/negative baseline close returns `status: "invalid_baseline"`, `delta_pct: None`.
+     - Verified 20-day zero volume returns `status: "zero_baseline"`, `volume_multiple: None`.
+     - Verified weekend gap between Friday (2026-10-23) and Monday (2026-10-26) correctly computes delta without missing-day alert.
+     - Verified 2:1 stock split adjustment prevents false -47.5% price crash.
+2. **Separately Marked Live Smoke Test (`tests/integration/test_price_live_smoke.py`):**
+   - Command: `python -m unittest tests/integration/test_price_live_smoke.py`
+   - Result: 1 test passed in 1.209s. Fetched live INFY daily sessions, verified >21 bars returned, Decimal close price > 0, calculations executed without error.
+3. **Workspace Full Regression (`discover -s tests`):**
    - Command: `python -m unittest discover -s tests`
-   - Result: 14 tests passed in 6.263s (Unit + Contracts + Playwright 390px E2E).
+   - Result: 24 tests passed in 6.379s.
 
 ### Unresolved Issues & Known Gaps
-- None. All T02 gate criteria satisfied.
+- None. All T03 gate criteria satisfied.
 
 ---
 
-## 3. Next Packet: T03 — Price adapter and deterministic calculations
+## 3. Next Packet: T04 — Exchange ingestion and reliable jobs
 
 **Objective:**
-Implement the price adapter interface (`PriceAdapter`), live Yahoo Finance adapter, fixture adapter (`tests/fixtures/source/infy_eod_sample.json`), completed-session handling, volume baseline (mean of previous 20 completed sessions excluding today), price move delta calculation, corporate action adjustment policies, and unit tests covering edge cases (zero/negative/missing data, exactly-2x volume threshold, weekends, provider revision).
+Implement the NSE corporate announcement adapter, attachment download jobs, announcement deduplication (within exchange and cross-source), durable background worker leases in SQLite, retries with exponential backoff/circuit breaker, and manual refresh endpoint with rate limiting.

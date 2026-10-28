@@ -1,4 +1,3 @@
-import uuid
 import json
 import sqlite3
 from datetime import datetime, timezone
@@ -62,7 +61,6 @@ class DataRepository:
     # Session Management
     def ensure_session(self, session_id: str) -> None:
         now_utc = datetime.now(timezone.utc).isoformat()
-        # Default 30 day expiration
         expires_utc = datetime.fromtimestamp(
             datetime.now(timezone.utc).timestamp() + 30 * 86400,
             tz=timezone.utc
@@ -119,9 +117,7 @@ class DataRepository:
         return cursor.rowcount > 0
 
     def seed_default_watchlist_for_session(self, session_id: str) -> int:
-        """Seeds the 18 default portfolio holdings for a fresh session."""
         self.ensure_session(session_id)
-        # Default 18 candidate companies (IDs comp-*-001 through comp-*-019 minus ad-hoc)
         rows = self.conn.execute("SELECT id FROM companies LIMIT 18").fetchall()
         count = 0
         now_utc = datetime.now(timezone.utc).isoformat()
@@ -247,3 +243,51 @@ class DataRepository:
                 "isin": row["isin"]
             }
         }
+
+    # Price Bar Persistence
+    def store_price_bars(self, security_id: str, bars: List[Any]) -> int:
+        count = 0
+        now_utc = datetime.now(timezone.utc).isoformat()
+        for b in bars:
+            bar_id = f"bar-{security_id}-{b.session_date}-{b.revision}"
+            self.conn.execute("""
+                INSERT OR REPLACE INTO price_bars (
+                    id, security_id, provider, session_date,
+                    open_price, high_price, low_price, close_price,
+                    adjusted_close, volume, action_flags, fetched_at_utc, revision
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                bar_id, security_id, b.provider, b.session_date,
+                str(b.open), str(b.high), str(b.low), str(b.close),
+                str(b.adjusted_close) if b.adjusted_close is not None else None,
+                b.volume, b.action_flags, now_utc, b.revision
+            ))
+            count += 1
+        self.conn.commit()
+        return count
+
+    def get_price_bars(self, security_id: str, limit: int = 60) -> List[Dict[str, Any]]:
+        rows = self.conn.execute("""
+            SELECT session_date, open_price, high_price, low_price, close_price,
+                   adjusted_close, volume, action_flags, provider, revision
+            FROM price_bars
+            WHERE security_id = ?
+            ORDER BY session_date DESC
+            LIMIT ?
+        """, (security_id, limit)).fetchall()
+
+        return [
+            {
+                "session_date": r["session_date"],
+                "open": r["open_price"],
+                "high": r["high_price"],
+                "low": r["low_price"],
+                "close": r["close_price"],
+                "adjusted_close": r["adjusted_close"],
+                "volume": r["volume"],
+                "action_flags": r["action_flags"],
+                "provider": r["provider"],
+                "revision": r["revision"]
+            }
+            for r in reversed(rows)
+        ]
