@@ -16,6 +16,7 @@ from finn.api.evidence import router as evidence_router
 from finn.api.prices import router as prices_router
 from finn.api.filings import router as filings_router
 from finn.api.alerts import router as alerts_router
+from finn.api.briefing import router as briefing_router, events_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +26,47 @@ async def lifespan(app: FastAPI):
     try:
         repo = DataRepository(conn)
         repo.seed_master_data()
+
+        # Seed initial fixture announcements if database has no events
+        has_events = conn.execute("SELECT count(*) FROM announcements").fetchone()[0]
+        if has_events == 0:
+            fixture_ann_path = Path(__file__).resolve().parent.parent.parent / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
+            if fixture_ann_path.exists():
+                from finn.adapters.exchange_adapter import FixtureExchangeAdapter
+                from finn.ingestion.announcements import AnnouncementIngestionService
+                adapter = FixtureExchangeAdapter(fixture_path=str(fixture_ann_path))
+                service = AnnouncementIngestionService(conn)
+                service.ingest(adapter)
+
+        # Seed primary document and verified guidance evidence
+        doc_id = "doc-infy-transcript-q4-fy24"
+        repo.store_source_document(
+            doc_id=doc_id,
+            company_id="comp-infy-001",
+            source_type="earnings_transcript",
+            publisher="Infosys IR",
+            source_url="https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf",
+            content_hash="ab268076b83ea82b4293f77341399cb633fa38318b32ba364379ca2fcbb571bc",
+            file_size_bytes=284498,
+            page_count=28,
+            published_at_utc="2024-04-18T10:00:00Z",
+            fiscal_period="Q4_FY24",
+            local_path="tests/fixtures/source/INFY_Q4_FY24_earningscall.pdf"
+        )
+        page_id = "page-infy-q4-fy24-p4"
+        repo.store_source_page(
+            page_id=page_id,
+            document_id=doc_id,
+            pdf_page_1based=4,
+            text_content="With that, our revenue growth guidance for FY '25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY '25 is 20% to 22%."
+        )
+        repo.store_evidence_span(
+            span_id="ev-preview-101",
+            page_id=page_id,
+            start_offset=10,
+            end_offset=153,
+            excerpt="revenue growth guidance for FY '25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY '25 is 20% to 22%."
+        )
     finally:
         conn.close()
     yield
@@ -78,6 +120,8 @@ app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(prices_router, prefix="/api/v1")
 app.include_router(filings_router)
 app.include_router(alerts_router)
+app.include_router(briefing_router, prefix="/api/v1")
+app.include_router(events_router, prefix="/api/v1")
 
 # Static frontend serving
 web_dist_path = Path(__file__).resolve().parent.parent.parent / "web" / "dist"

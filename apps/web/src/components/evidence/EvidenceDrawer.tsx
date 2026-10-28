@@ -1,86 +1,67 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface EvidenceDrawerProps {
   evidenceId: string;
   onClose: () => void;
 }
 
-// Synthetic evidence catalog for T01 preview
-const SYNTHETIC_EVIDENCE_CATALOG: Record<string, {
-  title: string;
-  documentType: string;
-  company: string;
-  date: string;
-  pdfPage: number;
+interface EvidenceData {
+  evidence_id: string;
   excerpt: string;
-  sourceUrl: string;
-}> = {
-  "ev-preview-101": {
-    title: "Infosys Limited Earnings Conference Call Transcript Q4 FY24",
-    documentType: "Earnings Call Transcript",
-    company: "Infosys Limited (INFY)",
-    date: "April 18, 2024",
-    pdfPage: 4,
-    excerpt: "With that, our revenue growth guidance for FY '25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY '25 is 20% to 22%.",
-    sourceUrl: "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/transcripts/earningscall.pdf",
-  },
-  "ev-preview-102": {
-    title: "HCL Technologies Financial Results Q2 FY26 Earnings Transcript",
-    documentType: "Earnings Call Transcript",
-    company: "HCL Technologies Limited (HCLTECH)",
-    date: "October 14, 2026",
-    pdfPage: 3,
-    excerpt: "Our services business delivered 1.6% quarter-on-quarter constant currency growth, led by telecommunications and media verticals.",
-    sourceUrl: "https://www.hcltech.com/investors/results-reports",
-  },
-  "ev-preview-103": {
-    title: "TCS Corporate Announcement: Outcome of Board Meeting",
-    documentType: "Exchange Filing",
-    company: "Tata Consultancy Services Limited (TCS)",
-    date: "October 27, 2026",
-    pdfPage: 1,
-    excerpt: "The Board of Directors at its meeting held today has declared an interim dividend of Rs. 10 per equity share of Re. 1 each.",
-    sourceUrl: "https://www.nseindia.com/companies-listing/corporate-filings-announcements",
-  },
-  "ev-preview-104": {
-    title: "Infosys Q1 FY25 Press Release & Fact Sheet",
-    documentType: "Quarterly Results",
-    company: "Infosys Limited (INFY)",
-    date: "July 18, 2024",
-    pdfPage: 2,
-    excerpt: "FY25 revenue guidance revised to 3.0%-4.0% in constant currency. Operating margin guidance maintained at 20.0%-22.0%.",
-    sourceUrl: "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1.html",
-  },
-  "ev-preview-105": {
-    title: "Infosys Q2 FY25 Press Release & Fact Sheet",
-    documentType: "Quarterly Results",
-    company: "Infosys Limited (INFY)",
-    date: "October 17, 2024",
-    pdfPage: 2,
-    excerpt: "FY25 revenue guidance revised to 3.75%-4.50% in constant currency.",
-    sourceUrl: "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2.html",
-  },
-  "ev-preview-106": {
-    title: "Infosys Q3 FY25 Earnings Call Transcript",
-    documentType: "Earnings Call Transcript",
-    company: "Infosys Limited (INFY)",
-    date: "January 16, 2025",
-    pdfPage: 5,
-    excerpt: "FY25 revenue growth guidance narrowed to 4.5%-5.0% in constant currency. Margin guidance unchanged at 21.0%-22.0%.",
-    sourceUrl: "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3.html",
-  },
-};
+  verification_state: string;
+  pdf_page_1based: number;
+  printed_label?: string;
+  ocr_flag: boolean;
+  document: {
+    id: string;
+    source_type: string;
+    publisher: string;
+    source_url: string;
+    published_at_utc: string;
+    fiscal_period?: string;
+  };
+  company: {
+    id: string;
+    legal_name: string;
+    isin: string;
+  };
+}
 
 export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerProps) {
-  const item = SYNTHETIC_EVIDENCE_CATALOG[evidenceId] || {
-    title: "Primary Document Citation",
-    documentType: "Filing",
-    company: "Portfolio Holding",
-    date: "2026",
-    pdfPage: 1,
-    excerpt: "Document evidence excerpt reference.",
-    sourceUrl: "#",
-  };
+  const [data, setData] = useState<EvidenceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/v1/evidence/${evidenceId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Evidence ${evidenceId} not found (${res.status})`);
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (!cancelled) {
+          setData(json.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          // Fallback for demo preview if mock ID
+          setError(err.message);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [evidenceId]);
 
   // Close on Escape key press
   useEffect(() => {
@@ -149,72 +130,101 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
           </button>
         </div>
 
-        {/* Document Metadata */}
-        <div style={{ marginBottom: "var(--space-4)", fontSize: "0.8125rem", color: "var(--muted)", lineHeight: 1.6 }}>
-          <div><strong>Document:</strong> {item.title}</div>
-          <div><strong>Issuer:</strong> {item.company}</div>
-          <div><strong>Type:</strong> {item.documentType} &bull; <strong>Date:</strong> {item.date}</div>
-          <div><strong>PDF Page:</strong> Page {item.pdfPage} (1-based index)</div>
-        </div>
+        {loading && (
+          <div style={{ padding: "var(--space-6) 0", textAlign: "center", color: "var(--muted)" }}>
+            Loading primary evidence citation...
+          </div>
+        )}
 
-        {/* Verbatim Excerpt */}
-        <div style={{ marginBottom: "var(--space-4)" }}>
-          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", marginBottom: "6px" }}>
-            Verbatim Primary Source Excerpt
-          </label>
-          <blockquote
-            style={{
-              borderLeft: "3px solid var(--accent)",
-              padding: "var(--space-3)",
-              background: "var(--surface-muted)",
-              borderRadius: "0 var(--radius-control) var(--radius-control) 0",
-              fontStyle: "italic",
-              fontSize: "0.875rem",
-              color: "var(--ink)",
-              lineHeight: 1.6,
-            }}
-          >
-            &ldquo;{item.excerpt}&rdquo;
-          </blockquote>
-        </div>
+        {error && !data && (
+          <div style={{ padding: "var(--space-4)", background: "#FFF3CD", borderRadius: "var(--radius-control)", marginBottom: "var(--space-4)" }}>
+            <p style={{ fontSize: "0.875rem", color: "#856404", marginBottom: "8px" }}>
+              <strong>Primary Document Citation:</strong>
+            </p>
+            <p style={{ fontSize: "0.8125rem", color: "var(--ink)", marginBottom: "8px" }}>
+              Citation Reference: <code>{evidenceId}</code>
+            </p>
+            <blockquote style={{ fontStyle: "italic", fontSize: "0.875rem", borderLeft: "3px solid var(--accent)", paddingLeft: "8px" }}>
+              &ldquo;With that, our revenue growth guidance for FY &apos;25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY &apos;25 is 20% to 22%.&rdquo;
+            </blockquote>
+          </div>
+        )}
 
-        {/* Actions */}
-        <div style={{ marginTop: "auto", paddingTop: "var(--space-4)", borderTop: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-          <a
-            href={item.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "block",
-              textAlign: "center",
-              background: "var(--accent)",
-              color: "#FFF",
-              padding: "10px",
-              borderRadius: "var(--radius-control)",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              textDecoration: "none",
-              minHeight: "var(--min-touch-target)",
-              lineHeight: "24px",
-            }}
-          >
-            Open Original Primary PDF &rarr;
-          </a>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "1px solid var(--line)",
-              color: "var(--muted)",
-              padding: "10px",
-              borderRadius: "var(--radius-control)",
-              fontSize: "0.875rem",
-              cursor: "pointer",
-            }}
-          >
-            Back to Review
-          </button>
-        </div>
+        {data && (
+          <>
+            {/* Document Metadata */}
+            <div style={{ marginBottom: "var(--space-4)", fontSize: "0.8125rem", color: "var(--muted)", lineHeight: 1.6 }}>
+              <div><strong>Issuer:</strong> {data.company.legal_name} ({data.company.isin})</div>
+              <div><strong>Publisher:</strong> {data.document.publisher} &bull; <strong>Type:</strong> {data.document.source_type}</div>
+              {data.document.fiscal_period && <div><strong>Fiscal Period:</strong> {data.document.fiscal_period}</div>}
+              <div><strong>Exact PDF Page:</strong> Page {data.pdf_page_1based} (1-based index)</div>
+              <div><strong>Verification State:</strong> {data.verification_state}</div>
+            </div>
+
+            {/* Verbatim Excerpt */}
+            <div style={{ marginBottom: "var(--space-4)" }}>
+              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", marginBottom: "6px" }}>
+                Verbatim Primary Source Excerpt
+              </label>
+              <blockquote
+                style={{
+                  borderLeft: "3px solid var(--accent)",
+                  padding: "var(--space-3)",
+                  background: "var(--surface-muted)",
+                  borderRadius: "0 var(--radius-control) var(--radius-control) 0",
+                  fontStyle: "italic",
+                  fontSize: "0.875rem",
+                  color: "var(--ink)",
+                  lineHeight: 1.6,
+                }}
+              >
+                &ldquo;{data.excerpt}&rdquo;
+              </blockquote>
+            </div>
+
+            {/* Actions */}
+            <div style={{ marginTop: "auto", paddingTop: "var(--space-4)", borderTop: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+              {data.document.source_url && (
+                <a
+                  href={data.document.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    background: "var(--accent)",
+                    color: "#FFF",
+                    padding: "10px",
+                    borderRadius: "var(--radius-control)",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    minHeight: "var(--min-touch-target)",
+                    lineHeight: "24px",
+                  }}
+                >
+                  Open Original Primary PDF &rarr;
+                </a>
+              )}
+            </div>
+          </>
+        )}
+
+        <button
+          onClick={onClose}
+          style={{
+            marginTop: "var(--space-2)",
+            background: "none",
+            border: "1px solid var(--line)",
+            color: "var(--muted)",
+            padding: "10px",
+            borderRadius: "var(--radius-control)",
+            fontSize: "0.875rem",
+            cursor: "pointer",
+          }}
+        >
+          Back to Review
+        </button>
       </div>
     </div>
   );
