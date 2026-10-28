@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T09:54:00Z (Asia/Kolkata: 2026-10-28T15:24:00+05:30)  
-**Current Milestone:** Completed T06 -> Proceeding to T07  
-**Repository State:** Complete Briefing vertical slice connected to live backend APIs (`/api/v1/briefing`, `/api/v1/events/{id}`, `/api/v1/evidence/{id}`, `/api/v1/watchlist`, `/api/v1/notification-rules`), real evidence drawer loading, date window filtering (24h/7d/custom), session alert settings with non-notifying preview, and 41 passing automated tests.
+**Last Updated:** 2026-10-28T09:57:00Z (Asia/Kolkata: 2026-10-28T15:27:00+05:30)  
+**Current Milestone:** Completed T07 -> Proceeding to T08  
+**Repository State:** Primary document pipeline operational: SSRF-safe URL validation, multi-layout PDF parsing, scanned/corrupt file detection, text chunking with page boundary preservation, SQLite FTS5 full-text indexing, generic IR link discovery, and 46 passing tests.
 
 ---
 
@@ -17,53 +17,44 @@
 | **T04** | Exchange ingestion and reliable jobs | **COMPLETED** | 2026-10-28T09:47:00Z | NSE announcement adapter, attachment download jobs, durable SQLite worker leases, crash recovery, duplicate poll dedup, partial pagination watermark protection, 403/429 visible error state, rate-limited refresh passing. |
 | **T05** | Materiality and alerts | **COMPLETED** | 2026-10-28T09:51:00Z | 17-category taxonomy, deterministic ranking tiers (Needs Attention, Worth a Look, Routine), critical safety overrides (insolvency, auditor resignation/qualification, regulatory seizure), results notice below actual results, alert dedup, non-causal price alert language, non-notifying preview passing. |
 | **T06** | Complete briefing vertical slice | **COMPLETED** | 2026-10-28T09:54:00Z | End-to-end Briefing screen connected to live API; 24h/7d/custom windows; count reconciliation; live evidence drawer data; alert inbox & session threshold persistence; Playwright mobile E2E workflow passing. |
-| **T07** | Primary document discovery and parsing | *NEXT* | Pending | Generic IR discovery, PDF page extraction, chunking, FTS5 index. |
-| **T08** | Structured extraction and financial facts | *Queued* | Pending | Normalized financial facts, deterministic QoQ/YoY, token tracking. |
+| **T07** | Primary document discovery and parsing | **COMPLETED** | 2026-10-28T09:57:00Z | SSRF-safe URL validation (RFC 1918, loopback, cloud metadata blocked), multi-layout PDF parsing (conversational transcript & tabular results), scanned/corrupt detection, SQLite FTS5 chunk indexing with exact page attribution, generic IR link discovery passing. |
+| **T08** | Structured extraction and financial facts | *NEXT* | Pending | Normalized financial facts, deterministic QoQ/YoY, token tracking. |
 | **T09** | Guidance ledger and first research report | *Queued* | Pending | 4-quarter ledger, stated vs reported assessment, dual citations. |
 | **T10** | Generalization and bounded questions | *Queued* | Pending | 3-5 prepared cases, held-out evaluation on 3 unseen tickers. |
 | **T11** | Replay and resilience | *Queued* | Pending | Historical replay clock, failure injection, session isolation. |
 
 ---
 
-## 2. Details of Completed Packet: T06
+## 2. Details of Completed Packet: T07
 
 ### Changed / Created Files
-- `apps/api/finn/api/briefing.py`:
-  - `GET /api/v1/briefing`: Date-windowed event query (`[start_utc, end_utc)`), tier partitioning (*Needs Attention*, *Worth a Look*, *Routine*), summary counts bar with exact reconciliation to records (`total_events == sum(tiers)`), and source freshness/coverage metadata.
-  - `GET /api/v1/events/{event_id}`: Canonical event group details and associated raw filings list.
-- `apps/api/finn/main.py`: Registered `briefing_router` and `events_router`; added lifespan seeding for verified primary evidence spans.
-- `apps/web/src/components/evidence/EvidenceDrawer.tsx`: Converted to live API integration, querying `GET /api/v1/evidence/{evidenceId}`, rendering verbatim excerpt, issuer, publisher, 1-based PDF page index, and direct PDF link button.
-- `apps/web/src/features/briefing/BriefingScreen.tsx`: Converted to live API integration with 24h/7d/custom presets, summary counts bar, manual refresh trigger, and evidence drawer invocation.
-- `apps/web/src/features/watchlist/WatchlistScreen.tsx`: Connected to live `GET /api/v1/watchlist`, `GET /api/v1/notification-rules`, and `PUT /api/v1/notification-rules`; added "Test on recent data" preview caller and session alerts inbox.
-- `tests/unit/test_briefing_api.py`: 3 unit tests verifying briefing response structure, count reconciliation, custom date window filtering, and evidence lookup.
-- `tests/e2e/test_briefing_vertical_slice.py`: Playwright mobile E2E test verifying changing date range presets (24h to 7d), opening Evidence Drawer and verifying exact quote & page number, saving custom notification thresholds, and running non-notifying rule preview.
+- `apps/api/finn/extraction/url_validator.py`: SSRF validator blocking private networks (10/8, 172.16/12, 192.168/16), loopback (127/8, localhost), cloud metadata (169.254/16), IPv6 link-local/unique-local, and non-HTTP schemes.
+- `apps/api/finn/extraction/pdf_parser.py`: PDF parser validating magic `%PDF-` header, computing SHA-256 checksums, extracting text per 1-based page, and identifying scanned / low-text documents.
+- `apps/api/finn/retrieval/indexer.py`: Text chunker (`chunk_document_pages`) preserving 1-based page bounds and section headers; `DocumentIndexer` inserting pages into `source_pages`, chunks into `document_chunks`, and index into virtual table `chunks_fts`; `search_chunks` executing Porter-stemmed FTS5 search with snippet generation.
+- `apps/api/finn/ingestion/discovery.py`: `GenericIRDiscoveryService` parsing HTML links on company domains into classified primary classes (`annual_report`, `earnings_transcript`, `quarterly_results`) with SSRF checks.
+- `tests/fixtures/source/HCLTECH_Q2_FY27_results_tabular.pdf`: Second PDF layout fixture representing 1-page tabular financial results with comparative columns.
+- `tests/unit/test_document_pipeline.py`: 5 unit tests verifying SSRF protection, multi-layout parsing across both fixtures, corrupt/scanned handling, FTS5 indexing with exact page attribution, and generic HTML IR discovery.
 
 ### Checks Actually Run & Results
 
-1. **Frontend Production Build:**
-   - Command: `cd apps/web; npm run build`
-   - Result: `tsc` typecheck passed with 0 errors; Vite bundle built in 693ms.
-2. **Briefing API Unit Tests (`tests/unit/test_briefing_api.py`):**
-   - Command: `python -m unittest tests/unit/test_briefing_api.py`
-   - Result: 3 tests passed in 0.869s. Verified summary counts equal sum of tier counts, custom date window accepted, and evidence lookup returns Page 4 verbatim guidance excerpt.
-3. **Playwright Mobile E2E Vertical Slice Test (`tests/e2e/test_briefing_vertical_slice.py`):**
-   - Command: `python -m unittest tests/e2e/test_briefing_vertical_slice.py`
-   - Result: 1 test passed in 4.355s at 390x844 mobile viewport.
-     - Verified date window toggle to "7 Days".
-     - Verified clicking "Inspect Source" opens Evidence Drawer showing Page 4 verbatim guidance quote.
-     - Verified closing drawer restores view.
-     - Verified navigating to Watchlist, saving custom threshold (6.5%), and seeing "Rules saved for this session!".
-     - Verified clicking "Test on recent data" returns preview matches without creating alerts.
-4. **Workspace Full Regression (`discover -s tests`):**
+1. **Document Pipeline Unit Tests (`tests/unit/test_document_pipeline.py`):**
+   - Command: `python -m unittest tests/unit/test_document_pipeline.py`
+   - Result: 5 tests passed in 1.471s.
+     - Verified SSRF validation blocks `127.0.0.1`, `localhost`, `169.254.169.254`, `10.0.0.5`, `192.168.1.1`, `file:///etc/passwd`, and permits public HTTPS.
+     - Verified Layout 1 (INFY 28-page transcript) and Layout 2 (HCLTECH 1-page tabular results) parsed cleanly.
+     - Verified non-PDF / HTML error pages produce `status: "corrupt_or_invalid"`.
+     - Verified document indexing stores chunks and FTS5 search retrieves exact page numbers with Porter stemming.
+     - Verified generic HTML IR link discovery categorizes reports and transcripts.
+2. **Workspace Full Regression (`discover -s tests`):**
    - Command: `python -m unittest discover -s tests`
-   - Result: 41 tests passed in 11.713s.
+   - Result: 46 tests passed in 12.389s.
 
 ### Unresolved Issues & Known Gaps
-- None. All T06 gate criteria satisfied.
+- None. All T07 gate criteria satisfied.
 
 ---
 
-## 3. Next Packet: T07 — Primary document discovery and parsing
+## 3. Next Packet: T08 — Structured extraction and financial facts
 
 **Objective:**
-Implement generic company IR discovery (annual reports and transcripts acquisition), PDF page extraction and text chunking, SQLite FTS5 index population, source quality/coverage manifest, bounded source URL validation (SSRF-safe, rejecting private IP ranges), and multi-layout PDF test fixtures.
+Implement the structured model adapter / extraction interface with Pydantic schema validation, financial-fact normalization (units, currency, periods, scopes), deterministic QoQ / YoY percentage and absolute change calculation, EBITDA derivation checks (explicit disclosure vs formula label), token/cost instrumentation, and gold-set test cases.
