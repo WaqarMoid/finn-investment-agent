@@ -182,9 +182,38 @@ class ResearchEngine:
             }
 
         match = resolved["company"]
+        company_id = match["id"]
         q_lower = question.lower()
         symbol = match.get("matched_symbol") or match.get("symbol") or "INFY"
 
+        # 1. First, search FTS5 indexed chunks for the company
+        from finn.retrieval.indexer import FTSIndexer
+        indexer = FTSIndexer(self.conn)
+        hits = indexer.search_chunks(company_id=company_id, query=question, limit=3)
+
+        if hits:
+            top_hit = hits[0]
+            clean_text = top_hit["text_content"].strip()
+            # Find the sentence matching question keywords
+            sentences = [s.strip() for s in clean_text.split(".") if len(s.strip()) > 10]
+            q_words = [w.lower() for w in question.lower().split() if len(w) > 3]
+            matching_sentences = [s for s in sentences if any(w in s.lower() for w in q_words)]
+            summary_sentence = matching_sentences[0] if matching_sentences else (sentences[0] if sentences else clean_text[:180])
+
+            return {
+                "question": question,
+                "answer": f"Based on primary filings: {summary_sentence}.",
+                "evidence_citations": [
+                    {
+                        "citation_num": 1,
+                        "evidence_id": f"chunk-{top_hit['chunk_id'][:8]}",
+                        "label": f"Page {top_hit['page_start']} ({top_hit['section']})"
+                    }
+                ],
+                "limitation": f"Grounded directly in indexed {symbol} filing chunk (Page {top_hit['page_start']})."
+            }
+
+        # 2. Known verified guidance and structured demo cases
         if "guidance" in q_lower or "changed" in q_lower or "revision" in q_lower:
             if symbol == "INFY":
                 return {
@@ -208,25 +237,27 @@ class ResearchEngine:
                     "limitation": "Audited full year numbers are scheduled for Q4 FY26 close."
                 }
         elif "cash" in q_lower or "profit" in q_lower:
-            return {
-                "question": question,
-                "answer": "Operating cash flow tracked net profit closely across reporting quarters, with free cash flow conversion exceeding 85% of operating profit, supported by disciplined days sales outstanding (DSO) management.",
-                "evidence_citations": [
-                    {"citation_num": 1, "evidence_id": "ev-infy-fact-pat", "label": "FY24 Annual Report p.14"}
-                ],
-                "limitation": "Quarterly cash flow statements in interim unaudited filings report condensed cash flow summaries only."
-            }
+            if symbol == "INFY":
+                return {
+                    "question": question,
+                    "answer": "Operating cash flow tracked net profit closely across reporting quarters, with free cash flow conversion exceeding 85% of operating profit, supported by disciplined days sales outstanding (DSO) management.",
+                    "evidence_citations": [
+                        {"citation_num": 1, "evidence_id": "ev-infy-fact-pat", "label": "FY24 Annual Report p.14"}
+                    ],
+                    "limitation": "Quarterly cash flow statements in interim unaudited filings report condensed cash flow summaries only."
+                }
         elif "challenge" in q_lower or "risk" in q_lower or "growth" in q_lower:
-            return {
-                "question": question,
-                "answer": "Management highlighted discretionary spending softness in communications, retail, and manufacturing client verticals, balanced by robust cost-optimization and generative AI mega-deal signings.",
-                "evidence_citations": [
-                    {"citation_num": 1, "evidence_id": "ev-preview-101", "label": "Q4 FY24 Earnings Call p.4"}
-                ],
-                "limitation": "Macroeconomic headwinds discussed in management commentary represent qualitative forward-looking perspectives."
-            }
+            if symbol == "INFY":
+                return {
+                    "question": question,
+                    "answer": "Management highlighted discretionary spending softness in communications, retail, and manufacturing client verticals, balanced by robust cost-optimization and generative AI mega-deal signings.",
+                    "evidence_citations": [
+                        {"citation_num": 1, "evidence_id": "ev-preview-101", "label": "Q4 FY24 Earnings Call p.4"}
+                    ],
+                    "limitation": "Macroeconomic headwinds discussed in management commentary represent qualitative forward-looking perspectives."
+                }
 
-        # Fallback bounded response
+        # 3. Fallback bounded response: never invent answers when primary evidence is missing
         return {
             "question": question,
             "answer": "The available primary filing records establish foundational financial facts, but do not contain explicit commentary directly answering this inquiry without speculative extrapolation.",

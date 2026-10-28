@@ -181,3 +181,7 @@ class DocumentIndexer:
             }
             for r in rows
         ]
+
+# Alias for backwards compatibility
+FTSIndexer = DocumentIndexer
+

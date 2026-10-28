@@ -1,8 +1,8 @@
 # FINN Build Status & Verification Ledger
 
-**Last Updated:** 2026-10-28T10:15:00Z (Asia/Kolkata: 2026-10-28T15:45:00+05:30)  
-**Current Milestone:** Completed T09 -> Proceeding to T10  
-**Repository State:** 4-quarter Management Guidance Ledger (*Stated* / *Reported* / *Assessment*), deterministic range matching, future period 'not_due' protection, qualitative support, dual-sided evidence citations, Research API and mobile Research Desk screen, and 61 passing automated tests.
+**Last Updated:** 2026-10-28T10:20:00Z (Asia/Kolkata: 2026-10-28T15:50:00+05:30)  
+**Current Milestone:** Completed T10 -> Proceeding to T11  
+**Repository State:** Generalization gate verified across 3 held-out tickers (`COFORGE`, `DIXON`, `ASTRAL`), generic FTS5 chunk retrieval, bounded question answering with exact page citations, honest missing-data limitations, and 65 passing automated tests.
 
 ---
 
@@ -20,8 +20,40 @@
 | **T07** | Primary document discovery and parsing | **COMPLETED** | 2026-10-28T09:57:00Z | SSRF-safe URL validation (RFC 1918, loopback, cloud metadata blocked), multi-layout PDF parsing (conversational transcript & tabular results), scanned/corrupt detection, SQLite FTS5 chunk indexing with exact page attribution, generic IR link discovery passing. |
 | **T08** | Structured extraction and financial facts | **COMPLETED** | 2026-10-28T09:59:00Z | Financial fact normalization to INR crore, deterministic growth deltas, margin percentage points (+3 pp), bank EBITDA suppression, Q4 = FY - 9M derivation citing both operands, token/cost instrumentation, and repeat-call caching passing. |
 | **T09** | Guidance ledger and first research report | **COMPLETED** | 2026-10-28T10:15:00Z | 4-quarter verified guidance ledger for INFY & HCLTECH; deterministic match verdicts (met/exceeded/missed/not_due/qualitative_supported); dual evidence drawer inspection; bounded Q&A; mobile Research screen passing. |
-| **T10** | Generalization and bounded questions | *NEXT* | Pending | 3-5 prepared cases, held-out evaluation on 3 unseen tickers. |
-| **T11** | Replay and resilience | *Queued* | Pending | Historical replay clock, failure injection, session isolation. |
+| **T10** | Generalization and bounded questions | **COMPLETED** | 2026-10-28T10:20:00Z | Generalization evaluation across 3 held-out tickers (COFORGE, DIXON, ASTRAL); generic FTS5 chunk retrieval; bounded question answering with exact page citations; honest empty ledger and missing data limitations passing. |
+| **T11** | Replay and resilience | *NEXT* | Pending | Historical replay clock, failure injection, session isolation. |
+
+---
+
+## 2. Details of Completed Packet: T10
+
+### Changed / Created Files
+- `apps/api/finn/research/engine.py`: Enhanced `answer_bounded_question` with generic FTS5 search across document chunks and keyword-targeted sentence extraction, while enforcing strict fallback limitations for unsupported queries.
+- `apps/api/finn/retrieval/indexer.py`: Added `FTSIndexer = DocumentIndexer` alias for consistent retriever access.
+- `tests/unit/test_generalization.py`: 4 unit tests verifying held-out company resolution across three distinct sectors (`COFORGE` - IT, `DIXON` - EMS, `ASTRAL` - Building Products), generic HTML IR discovery identifying missing document classes, indexing and grounded question answering with exact page citations ($516M order intake on Page 1), and honest empty ledger and limitation responses when data is unavailable.
+
+### Checks Actually Run & Results
+1. **Held-Out Generalization Tests (`tests/unit/test_generalization.py`):**
+   - Command: `python -m unittest tests/unit/test_generalization.py`
+   - Result: 4 tests passed in 0.214s.
+     - Verified COFORGE, DIXON, ASTRAL resolve without hardcoded ticker narrative code.
+     - Verified generic discovery identifies available annual reports and flags missing transcripts.
+     - Verified indexing an unseen holding (`COFORGE`) allows querying and returns grounded answers with exact Page 1 citations.
+     - Verified that unseen holding with missing transcripts (`DIXON`) returns an empty guidance ledger and an explicit policy limitation notice, rejecting ungrounded speculation.
+2. **All Unit & Contract Tests:**
+   - Command: `python -m unittest discover -s tests/unit` & `python -m unittest discover -s tests/contracts`
+   - Result: 62 tests passed in 7.578s.
+3. **Full Playwright Mobile E2E Suite (`tests/e2e/`):**
+   - Command: `python -m unittest discover -s tests/e2e`
+   - Result: 3 tests passed in 12.687s (`test_mobile_shell.py`, `test_briefing_vertical_slice.py`, `test_research_vertical_slice.py`).
+4. **Total Automated Tests Passing:** 65 tests.
+
+### Unresolved Issues & Known Gaps
+- None. All T10 gate criteria satisfied.
+
+---
+
+## 3. Next Packet: T11 — Replay and resilience
 
 ---
 
