@@ -70,8 +70,13 @@ class ResearchEngine:
                     return f"₹{value} Cr"
             return f"{value} {unit}"
 
+        label_overrides = {
+            "ebit_margin": "EBIT Margin", "ebitda": "EBITDA",
+            "profit_after_tax": "Profit After Tax (PAT)",
+        }
+
         return [{
-            "label": row["metric_key"].replace("_", " ").title(),
+            "label": label_overrides.get(row["metric_key"], row["metric_key"].replace("_", " ").title()),
             "value": display_value(row["original_value"], row["original_unit"]),
             "growth": row["fiscal_label"],
             "evidence_id": row["evidence_id"],

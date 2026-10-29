@@ -18,7 +18,7 @@ The deployed Localtunnel build, REST API, SQLite records, mobile viewport, deskt
 | Default watchlist | `SELECT ... LIMIT 18` selected whichever companies SQLite returned first. | The starter portfolio could change as unmonitored issuers were inserted. | The 18 assignment companies are now seeded from an explicit ordered ID list. |
 | Filing categories | Broad “financial results” matching ran before transcript/call matching. | Earnings calls could be mislabeled as results. | Specific call/transcript rules now run before results rules. |
 | Briefing evidence | Every event opened the same hard-coded `ev-preview-101`. | Filing buttons could show an unrelated Infosys quotation. | Each event opens its actual NSE attachment URL; no source button is rendered when the filing has no URL. |
-| Research integrity | INFY/HCL narratives, figures, and guidance rows were hand-written into seed data; TCS/Reliance fell back to the Infosys demo citation. | Reports could display unsupported or cross-company claims. | Synthetic documents and placeholder NSE paths are removed at startup. Four quick stocks now have first-party issuer links. Facts and ledger rows require persisted page evidence. |
+| Research integrity | INFY/HCL narratives, figures, and guidance rows were hand-written into seed data; TCS/Reliance fell back to the Infosys demo citation. | Reports could display unsupported or cross-company claims. | Synthetic documents and placeholder NSE paths are removed at startup. All four quick stocks now have first-party source libraries plus three current, inspectable financial facts. Ledger rows require a persisted statement-and-outcome evidence pair. |
 | Research race | Rapid ticker selection left the previous report visible while the next request ran. | TCS or Reliance could show Infosys/HCL content. | The active request is aborted, the previous report is cleared immediately, and controls are disabled during resolution. |
 | Evidence drawer | A failed citation request displayed a fixed sample guidance quote. | A 404 looked like verified evidence. | The drawer now shows an explicit unavailable state and never substitutes text. |
 | Bounded Q&A | FTS results returned citation IDs that did not exist in the evidence API. | Answers could not be inspected. | A matching parsed page now produces a stable real evidence span; otherwise FINN refuses to answer. |
@@ -40,6 +40,6 @@ Screenshots are stored in `docs/audit-after/`. The repeatable browser audit scri
 ## Product limits retained intentionally
 
 - BSE automated announcements remain unavailable because its anti-bot layer rejects the server flow. The UI and API state that NSE is the active exchange source.
-- The official research catalog is complete for the four quick choices, but page-level extraction is intentionally pending. This is a visible coverage state, not a silent fallback.
+- Three current issuer-published facts are indexed for every quick research choice. Full-document extraction and management-guidance pairing remain visibly pending where evidence is incomplete.
 - The Render free tier has an ephemeral filesystem and can sleep after inactivity. Startup recreates the database and source catalog, but durable cross-deploy watchlists require a persistent disk or managed database.
 - The maximum on-demand NSE backfill is 32 calendar days to bound upstream load and response time.

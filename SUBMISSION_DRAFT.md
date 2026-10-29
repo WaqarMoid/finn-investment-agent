@@ -14,7 +14,7 @@ Hello ENAM team,
 I built FINN, a mobile-first, evidence-first portfolio briefing and primary-source research engine for Indian equity investors. It focuses on two core workflows:
 
 1. **Evidence-First Portfolio Briefing:** A priority-ranked digest that syncs the selected 24-hour, seven-day, or custom interval from NSE and scopes results to the session's 18-company watchlist. Each event opens its actual NSE attachment. Counts reconcile to the source filings in the selected time window.
-2. **Evidence-Gated Research Desk:** Official issuer source libraries are registered for INFY, HCLTECH, TCS, and RELIANCE. Financial facts and management-guidance verdicts appear only when page-level evidence has been parsed and verified; missing extraction is shown as a coverage gap instead of being replaced with sample figures or cross-company citations.
+2. **Evidence-Gated Research Desk:** Official issuer source libraries and current verified financial snapshots are registered for INFY, HCLTECH, TCS, and RELIANCE. Every displayed fact opens an inspectable first-party excerpt. Management-guidance verdicts appear only when a statement and comparable outcome are both verified; missing extraction is shown as a coverage gap.
 
 - **Mobile-First Prototype URL:** [https://burner-trips-sell-murphy.trycloudflare.com](https://burner-trips-sell-murphy.trycloudflare.com) *(No password or IP verification required; opens directly on phone and desktop)*
 - **Permanent-hosting setup:** [one-click Render Blueprint](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)

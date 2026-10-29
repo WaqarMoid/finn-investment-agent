@@ -7,7 +7,7 @@ It directly answers three daily investor questions:
 2. **Why does it matter?** (Concise 30-word implication and rule-based materiality classification).
 3. **What supports that?** (Direct links to primary sources via an immutable Evidence Drawer with 1-based PDF page numbers and verbatim excerpts).
 
-The research desk keeps an official-source catalog and exposes a Management Guidance Ledger only when both a management statement and a comparable outcome have inspectable evidence. Missing extraction remains visibly pending instead of being filled with sample claims.
+The research desk keeps an official-source catalog, provides verified current financial snapshots for all four quick-research companies, and exposes a Management Guidance Ledger only when both a management statement and a comparable outcome have inspectable evidence. Missing extraction remains visibly pending instead of being filled with sample claims.
 
 ---
 
@@ -151,7 +151,7 @@ python -m pytest -q
 | **NSE Announcements** | **Verified Live** | Ingests corporate announcements with attachment URLs via session cookies. |
 | **BSE Announcements** | **Documented Limitation** | Returns HTTP 403 (Cloudflare bot protection). Gracefully logged as a known limitation; NSE is primary filing exchange. |
 | **Yahoo Finance EOD** | **Verified Live** | Daily price/volume bars with split/dividend adjustment history. |
-| **Primary IR Documents** | **Source catalog active** | Official issuer links are registered for INFY, HCLTECH, TCS, and RELIANCE. Page facts and guidance appear only after extraction produces inspectable evidence spans. |
+| **Primary IR Documents** | **Catalog + verified snapshots active** | Official issuer links and current evidence-backed financial facts are registered for INFY, HCLTECH, TCS, and RELIANCE. Guidance appears only after extraction produces a comparable statement-and-outcome pair. |
 
 ## Public mobile deployment
 
