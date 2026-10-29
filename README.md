@@ -154,6 +154,9 @@ python -m unittest discover -s tests
 
 ---
 
-## 7. Build History & Development Ledger
+## 7. AI Build History & Planning Records
 
-For packet-by-packet logs, commands run, and verification gates from `T00` through `T13`, consult [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
+- **Architecture & Planning Conversation (ChatGPT):** [https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e](https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e)
+- **Implementation & Verification Transcript (Antigravity):** [`docs/ai_build_history_transcript.jsonl`](docs/ai_build_history_transcript.jsonl)
+- **Packet-by-Packet Build Status Ledger:** [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md)
+- **Submission Document & Demo Script:** [`SUBMISSION_DRAFT.md`](SUBMISSION_DRAFT.md)
