@@ -11,7 +11,20 @@ from finn.adapters.exchange_adapter import FixtureExchangeAdapter, NSEExchangeAd
 
 router = APIRouter(tags=["Filings & Ingestion"])
 
-FIXTURE_PATH = Path(__file__).resolve().parents[4] / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
+
+def _resolve_fixture_path() -> Path:
+    """Find replay data without assuming a particular checkout/container depth."""
+    override = os.getenv("FINN_ANNOUNCEMENTS_FIXTURE")
+    if override:
+        return Path(override).expanduser().resolve()
+
+    relative = Path("tests") / "fixtures" / "source" / "nse_announcements_sample.json"
+    candidates = [Path.cwd() / relative]
+    candidates.extend(parent / relative for parent in Path(__file__).resolve().parents)
+    return next((candidate for candidate in candidates if candidate.exists()), candidates[0])
+
+
+FIXTURE_PATH = _resolve_fixture_path()
 
 # In-memory rate limiting tracker: session_id -> last_refresh_timestamp
 _LAST_REFRESH_MAP: Dict[str, float] = {}

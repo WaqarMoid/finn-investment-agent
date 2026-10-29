@@ -15,7 +15,7 @@ from finn.api.companies import router as companies_router
 from finn.api.watchlist import router as watchlist_router
 from finn.api.evidence import router as evidence_router
 from finn.api.prices import router as prices_router
-from finn.api.filings import router as filings_router
+from finn.api.filings import router as filings_router, FIXTURE_PATH as ANNOUNCEMENTS_FIXTURE_PATH
 from finn.api.alerts import router as alerts_router
 from finn.api.briefing import router as briefing_router, events_router
 from finn.api.research import router as research_router
@@ -40,9 +40,8 @@ async def lifespan(app: FastAPI):
             from finn.ingestion.announcements import AnnouncementIngestionService
             service = AnnouncementIngestionService(conn)
             if os.getenv("FINN_MODE", "live").lower() == "replay":
-                fixture_ann_path = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
-                if fixture_ann_path.exists():
-                    service.ingest(FixtureExchangeAdapter(fixture_path=str(fixture_ann_path)))
+                if ANNOUNCEMENTS_FIXTURE_PATH.exists():
+                    service.ingest(FixtureExchangeAdapter(fixture_path=str(ANNOUNCEMENTS_FIXTURE_PATH)))
             elif os.getenv("FINN_STARTUP_SYNC", "false").lower() in {"1", "true", "yes"}:
                 today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
                 service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
