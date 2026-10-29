@@ -118,7 +118,7 @@ const getAvatarClass = (symbol: string) => {
 export default function ResearchScreen() {
   const [query, setQuery] = useState("INFY");
   const [report, setReport] = useState<Report | null>(null);
-  const [tab, setTab] = useState<"sources" | "facts" | "ledger" | "analysis">("sources");
+  const [tab, setTab] = useState<"sources" | "facts" | "ledger">("facts");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
@@ -150,7 +150,7 @@ export default function ResearchScreen() {
       if (!controller.signal.aborted) {
         setReport(next);
         setQuery(next.company.symbol);
-        setTab("sources");
+        setTab(next.overview_facts.length ? "facts" : next.guidance_ledger.length ? "ledger" : "sources");
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -202,9 +202,9 @@ export default function ResearchScreen() {
     <div className="research-screen">
       <header className="screen-heading">
         <div className="screen-kicker">Primary research</div>
-        <h1 className="screen-title">Follow the evidence.</h1>
+        <h1 className="screen-title">Research desk</h1>
         <p className="screen-subtitle">
-          Official issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.
+          Company facts and management guidance, with the primary source behind each claim.
         </p>
       </header>
 
@@ -226,7 +226,7 @@ export default function ResearchScreen() {
           </button>
         </form>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 12 }}>
+        <div className="research-switcher" aria-label="Quick company switcher">
           {["INFY", "TCS", "HCLTECH", "RELIANCE", "COFORGE", "DIXON", "ASTRAL"].map((symbol) => (
             <button
               className={`button secondary ${report?.company.symbol === symbol ? "active" : ""}`}
@@ -278,32 +278,68 @@ export default function ResearchScreen() {
               </div>
             </div>
 
-            {/* Pipeline Stages Progress Bar */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 16 }}>
-              {report.stages.map((stage) => (
-                <div
-                  key={stage.label}
-                  style={{
-                    minHeight: 5,
-                    borderRadius: 99,
-                    background: stage.status === "completed" ? "var(--positive)" : "var(--surface-muted)",
-                  }}
-                  title={`${stage.label}: ${stage.status}`}
-                />
-              ))}
+            <div className="research-coverage-line">
+              {report.source_coverage.length} primary sources · {report.overview_facts.length} verified facts · {report.guidance_ledger.length} guidance statements
             </div>
           </section>
 
+          {/* Bounded free-form research */}
+          <section className="panel">
+            <div className="panel-header">
+              <span className="panel-title">Ask the filings</span>
+              <span className="badge badge-routine">Source-backed</span>
+            </div>
+
+            <p className="research-help">Ask your own question. FINN searches indexed issuer evidence and shows the exact passage it used.</p>
+            <div className="research-suggestions" aria-label="Example questions">
+              {[
+                "What revenue did the company report?",
+                "What guidance did management give?",
+                "What did management say about cash conversion?",
+              ].map((prompt) => (
+                <button className="research-suggestion" key={prompt} onClick={() => triggerPrompt(prompt)} disabled={asking}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            <div className="field">
+              <label htmlFor="research-question">Focused question</label>
+              <input
+                id="research-question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ask anything about this issuer’s indexed sources"
+                onKeyDown={(event) => { if (event.key === "Enter") ask(); }}
+              />
+            </div>
+            <button className="button research-ask" onClick={() => ask()} disabled={asking || !question.trim()}>
+              {asking ? "Searching evidence…" : "Find answer"}
+            </button>
+
+            {answer && (
+              <div className="notice" style={{ marginTop: 14, marginBottom: 0 }}>
+                <strong>{answer.answer}</strong>
+                <p style={{ marginTop: 7, color: "var(--muted)", fontSize: 12.5 }}>
+                  {answer.limitation}
+                </p>
+                {answer.evidence_citations.map((c) => (
+                  <button
+                    key={c.evidence_id}
+                    className="button secondary"
+                    style={{ marginTop: 10, fontSize: 12, minHeight: 34 }}
+                    onClick={() => setEvidenceId(c.evidence_id)}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+
           {/* Revolut Segmented Tabs */}
           <div className="segmented" style={{ marginBottom: 16 }}>
-            {report.modules && (
-              <button
-                className={tab === "analysis" ? "active" : ""}
-                onClick={() => setTab("analysis")}
-              >
-                Analysis · 8 Modules
-              </button>
-            )}
             <button
               className={tab === "sources" ? "active" : ""}
               onClick={() => setTab("sources")}
@@ -323,229 +359,6 @@ export default function ResearchScreen() {
               Guidance · {report.guidance_ledger.length}
             </button>
           </div>
-
-          {/* TAB: 8-Module Fundamental Analysis Suite */}
-          {tab === "analysis" && report.modules && (
-            <div>
-              {/* 1. Business Snapshot */}
-              {report.modules.business_snapshot && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">1. Business Snapshot & Revenue Mix</span>
-                    <span className="badge badge-routine">Segments</span>
-                  </div>
-                  <p style={{ color: "var(--ink)", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
-                    {report.modules.business_snapshot.summary}
-                  </p>
-                  <div className="module-grid">
-                    <div className="module-card">
-                      <div className="module-card-title">Operating Segments (% Revenue)</div>
-                      <div className="chip-row">
-                        {report.modules.business_snapshot.segments.map((seg) => (
-                          <span className="chip" key={seg.name}>
-                            {seg.name}: <strong>{seg.share_pct}%</strong>
-                            {seg.growth && <span style={{ color: seg.growth.startsWith("+") ? "var(--positive)" : "var(--negative)", marginLeft: 4 }}>{seg.growth}</span>}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    {report.modules.business_snapshot.geographies && (
-                      <div className="module-card">
-                        <div className="module-card-title">Geographic Distribution</div>
-                        <div className="chip-row">
-                          {report.modules.business_snapshot.geographies.map((geo) => (
-                            <span className="chip" key={geo.region}>
-                              {geo.region}: <strong>{geo.share_pct}%</strong>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-
-              {/* 2. Financial Snapshot */}
-              {report.modules.financial_snapshot && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">2. Financial Snapshot ({report.modules.financial_snapshot.headline_period})</span>
-                    <span className="badge badge-positive">Audited Numbers</span>
-                  </div>
-                  <div className="summary-strip">
-                    <div className="summary-stat">
-                      <span>Revenue</span>
-                      <strong>{report.modules.financial_snapshot.revenue.value}</strong>
-                      <span style={{ color: "var(--positive)" }}>{report.modules.financial_snapshot.revenue.growth_yoy} YoY</span>
-                    </div>
-                    <div className="summary-stat">
-                      <span>Operating Margin</span>
-                      <strong>{report.modules.financial_snapshot.operating_margin.value}</strong>
-                      <span>{report.modules.financial_snapshot.operating_margin.delta_yoy} YoY</span>
-                    </div>
-                    <div className="summary-stat">
-                      <span>Net Profit (PAT)</span>
-                      <strong>{report.modules.financial_snapshot.net_profit.value}</strong>
-                      <span style={{ color: "var(--positive)" }}>{report.modules.financial_snapshot.net_profit.growth_yoy} YoY</span>
-                    </div>
-                  </div>
-                  {report.modules.financial_snapshot.key_ratios && (
-                    <div className="chip-row" style={{ marginTop: 10 }}>
-                      {report.modules.financial_snapshot.key_ratios.map((kr) => (
-                        <span className="chip" key={kr.name}>
-                          {kr.name}: <strong>{kr.value}</strong>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              )}
-
-              {/* 3. Trajectory */}
-              {report.modules.trajectory && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">3. Trajectory: Growth vs. Compression</span>
-                    <span className="badge badge-routine">Multi-Year Direction</span>
-                  </div>
-                  <p style={{ fontSize: 13.5, color: "var(--muted)", marginBottom: 12 }}>
-                    {report.modules.trajectory.direction}
-                  </p>
-                  <div className="module-grid">
-                    <div className="module-card">
-                      <div className="module-card-title" style={{ color: "var(--positive)" }}>
-                        <span>▲ Secular Growth Vectors</span>
-                      </div>
-                      {report.modules.trajectory.growth_drivers.map((gd) => (
-                        <div key={gd.vector} style={{ marginBottom: 8, fontSize: 13 }}>
-                          <strong>{gd.vector}:</strong> {gd.detail}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="module-card">
-                      <div className="module-card-title" style={{ color: "var(--negative)" }}>
-                        <span>▼ Compression Drags</span>
-                      </div>
-                      {report.modules.trajectory.compression_drags.map((cd) => (
-                        <div key={cd.segment} style={{ marginBottom: 8, fontSize: 13 }}>
-                          <strong>{cd.segment}:</strong> {cd.detail}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* 4. Balance Sheet & 5. Cash Quality */}
-              <div className="module-grid" style={{ marginBottom: 14 }}>
-                {report.modules.balance_sheet && (
-                  <section className="panel" style={{ marginBottom: 0 }}>
-                    <div className="panel-header">
-                      <span className="panel-title">4. Balance Sheet & Leverage</span>
-                      <span className="badge badge-positive">{report.modules.balance_sheet.net_cash_debt.status}</span>
-                    </div>
-                    <h3 style={{ fontSize: 24, fontWeight: 800 }}>{report.modules.balance_sheet.net_cash_debt.value}</h3>
-                    <p style={{ color: "var(--muted)", fontSize: 12.5, margin: "4px 0 10px" }}>
-                      {report.modules.balance_sheet.net_cash_debt.label}
-                    </p>
-                    <div className="chip-row">
-                      <span className="chip">DSO: <strong>{report.modules.balance_sheet.working_capital_dso.value}</strong></span>
-                      <span className="chip">Leverage: <strong>{report.modules.balance_sheet.leverage_ratio.value}</strong></span>
-                    </div>
-                    <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
-                      <strong>Capital Allocation:</strong> {report.modules.balance_sheet.capital_allocation}
-                    </p>
-                  </section>
-                )}
-
-                {report.modules.cash_quality && (
-                  <section className="panel" style={{ marginBottom: 0 }}>
-                    <div className="panel-header">
-                      <span className="panel-title">5. Cash Quality</span>
-                      <span className="badge badge-positive">Cash Conversion</span>
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--positive)", marginBottom: 8 }}>
-                      {report.modules.cash_quality.verdict}
-                    </div>
-                    <div style={{ fontSize: 13, lineHeight: 1.6 }}>
-                      <div>• <strong>Operating Cash Flow:</strong> {report.modules.cash_quality.operating_cash_flow}</div>
-                      <div>• <strong>Free Cash Flow:</strong> {report.modules.cash_quality.free_cash_flow}</div>
-                      <div>• <strong>Conversion Metric:</strong> {report.modules.cash_quality.conversion_ratio}</div>
-                      <div>• <strong>Working Capital:</strong> {report.modules.cash_quality.working_capital_drag}</div>
-                    </div>
-                  </section>
-                )}
-              </div>
-
-              {/* 6. Narrative vs. Numbers Worked Example */}
-              {report.modules.narrative_vs_numbers && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">6. Narrative vs. Numbers (Worked Example)</span>
-                    <span className="badge badge-routine">4-Quarter Audit</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
-                    Comparing management promises from earnings call transcripts against reported statutory financial numbers.
-                  </p>
-                  {report.modules.narrative_vs_numbers.map((row) => (
-                    <article className="event-card" key={row.quarter}>
-                      <div className="event-meta">
-                        <strong>{row.quarter}</strong>
-                        <span
-                          className={`badge ${
-                            row.verdict === "met" || row.verdict === "exceeded"
-                              ? "badge-positive"
-                              : row.verdict === "missed"
-                              ? "badge-attention"
-                              : "badge-routine"
-                          }`}
-                        >
-                          {row.verdict.toUpperCase()}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: 14.5 }}>Promised: {row.management_narrative}</h3>
-                      <p style={{ color: "var(--ink)" }}><strong>Delivered:</strong> {row.actual_reported}</p>
-                      <div className="event-actions">
-                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{row.analysis}</span>
-                      </div>
-                    </article>
-                  ))}
-                </section>
-              )}
-
-              {/* 8. Bull vs. Bear Case */}
-              {report.modules.bull_vs_bear && (
-                <section className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">8. Bull vs. Bear Case</span>
-                    <span className="badge badge-routine">High Conviction</span>
-                  </div>
-                  <div className="module-grid">
-                    <div className="module-card">
-                      <div className="module-card-title" style={{ color: "var(--positive)" }}>
-                        <span>🐂 The Bull Thesis</span>
-                      </div>
-                      {report.modules.bull_vs_bear.bull_thesis.map((b) => (
-                        <div key={b.point} style={{ marginBottom: 10, fontSize: 13 }}>
-                          <strong>{b.point}:</strong> {b.detail}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="module-card">
-                      <div className="module-card-title" style={{ color: "var(--negative)" }}>
-                        <span>🐻 The Bear Thesis</span>
-                      </div>
-                      {report.modules.bull_vs_bear.bear_thesis.map((b) => (
-                        <div key={b.point} style={{ marginBottom: 10, fontSize: 13 }}>
-                          <strong>{b.point}:</strong> {b.detail}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
 
           {/* TAB: Sources */}
           {tab === "sources" && (
@@ -568,7 +381,7 @@ export default function ResearchScreen() {
                     <h3>{source.title}</h3>
                     <p>
                       {source.page_count
-                        ? `${source.page_count} indexed pages`
+                        ? "Page-level evidence available"
                         : "Official link registered · page extraction pending"}
                     </p>
                     <div className="event-actions">
@@ -628,7 +441,7 @@ export default function ResearchScreen() {
                 <div className="empty-state">
                   <h3>No evidence-paired guidance yet</h3>
                   <p>
-                    A ledger row needs both the management statement and a comparable reported outcome. FINN leaves this empty until both citations are verified.
+                    No management statement has been verified for this issuer. A reported outcome is assessed separately when the target period closes.
                   </p>
                 </div>
               ) : (
@@ -645,13 +458,13 @@ export default function ResearchScreen() {
                             : "badge-routine"
                         }`}
                       >
-                        {row.assessment}
+                        {row.assessment.replaceAll("_", " ")}
                       </span>
                     </div>
                     <h3>{row.stated_summary}</h3>
-                    <p>{row.reported_summary}</p>
+                    <p>{row.explanation}</p>
                     <div className="event-actions">
-                      <span>{row.explanation}</span>
+                      <span />
                       <button className="button secondary" onClick={() => setEvidenceId(row.stated_evidence_id)}>
                         Inspect statement
                       </button>
@@ -661,90 +474,6 @@ export default function ResearchScreen() {
               )}
             </section>
           )}
-
-          {/* Revolut Ask on Demand / Quick Dig-In */}
-          <section className="panel">
-            <div className="panel-header">
-              <span className="panel-title">Ask on Demand / Dig In</span>
-              <span className="badge badge-routine">Evidence Gated</span>
-            </div>
-
-            {/* Quick Prompt Suggestion Pills */}
-            <div className="chip-row" style={{ marginBottom: 12 }}>
-              <button
-                className="chip"
-                style={{ cursor: "pointer", background: "var(--surface-muted)" }}
-                onClick={() => triggerPrompt("What is the narrative vs numbers delivery across quarters?")}
-              >
-                📊 Narrative vs Numbers
-              </button>
-              <button
-                className="chip"
-                style={{ cursor: "pointer", background: "var(--surface-muted)" }}
-                onClick={() => triggerPrompt("What is the cash quality and FCF conversion?")}
-              >
-                💰 Cash Quality
-              </button>
-              <button
-                className="chip"
-                style={{ cursor: "pointer", background: "var(--surface-muted)" }}
-                onClick={() => triggerPrompt("What is the multi-year trajectory and compression?")}
-              >
-                📈 Trajectory
-              </button>
-              <button
-                className="chip"
-                style={{ cursor: "pointer", background: "var(--surface-muted)" }}
-                onClick={() => triggerPrompt("What is the balance sheet leverage and working capital DSO?")}
-              >
-                ⚖️ Balance Sheet
-              </button>
-              <button
-                className="chip"
-                style={{ cursor: "pointer", background: "var(--surface-muted)" }}
-                onClick={() => triggerPrompt("What is the bull vs bear thesis?")}
-              >
-                🐂 Bull vs Bear
-              </button>
-            </div>
-
-            <div className="field">
-              <label htmlFor="research-question">Focused question</label>
-              <input
-                id="research-question"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="What changed in management guidance?"
-              />
-            </div>
-            <button
-              className="button"
-              style={{ width: "100%", marginTop: 10 }}
-              onClick={() => ask()}
-              disabled={asking || !question.trim()}
-            >
-              {asking ? "Searching excerpts…" : "Ask"}
-            </button>
-
-            {answer && (
-              <div className="notice" style={{ marginTop: 14, marginBottom: 0 }}>
-                <strong>{answer.answer}</strong>
-                <p style={{ marginTop: 7, color: "var(--muted)", fontSize: 12.5 }}>
-                  {answer.limitation}
-                </p>
-                {answer.evidence_citations.map((c) => (
-                  <button
-                    key={c.evidence_id}
-                    className="button secondary"
-                    style={{ marginTop: 10, fontSize: 12, minHeight: 34 }}
-                    onClick={() => setEvidenceId(c.evidence_id)}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
 
           {/* Coverage Limits */}
           <section className="panel">

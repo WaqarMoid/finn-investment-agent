@@ -171,31 +171,11 @@ export default function BriefingScreen() {
     <div className="briefing-screen">
       <header className="screen-heading">
         <div className="screen-kicker">Portfolio Push Digest</div>
-        <h1 className="screen-title">What changed?</h1>
+        <h1 className="screen-title">Portfolio pulse</h1>
         <p className="screen-subtitle">
-          Continuous, priority-ranked corporate disclosures and material developments across your watchlist.
+          The filings and price moves that matter across your watchlist, ranked by priority.
         </p>
       </header>
-
-      {/* Revolut Quick Action Row */}
-      <div className="quick-action-row">
-        <button className="quick-action-btn" onClick={() => loadBriefing(preset, true)} disabled={syncing}>
-          <div className="quick-action-icon">🔄</div>
-          <span className="quick-action-label">{syncing ? "Syncing…" : "Sync NSE"}</span>
-        </button>
-        <button className="quick-action-btn" onClick={() => { window.location.hash = "#/research"; }}>
-          <div className="quick-action-icon">🔍</div>
-          <span className="quick-action-label">Deep Dive</span>
-        </button>
-        <button className="quick-action-btn" onClick={() => { window.location.hash = "#/watchlist"; }}>
-          <div className="quick-action-icon">⚡</div>
-          <span className="quick-action-label">Set Alerts</span>
-        </button>
-        <button className="quick-action-btn" onClick={() => choosePreset("7d")}>
-          <div className="quick-action-icon">📅</div>
-          <span className="quick-action-label">7 Days</span>
-        </button>
-      </div>
 
       {meta?.is_replay && (
         <div className="notice">

@@ -16,6 +16,31 @@ PRIMARY_SOURCE_CATALOG = [
     ("src-tcs-investor-relations", "comp-tcs-002", "quarterly_results_library", "TCS Investor Relations", "https://www.tcs.com/investor-relations", "FY27"),
     ("src-reliance-annual-report-fy26", "comp-reliance-004", "annual_report", "Reliance Industries Investor Relations", "https://www.ril.com/reports/RIL-Integrated-Annual-Report-2025-26.pdf", "FY26"),
     ("src-reliance-financial-reporting", "comp-reliance-004", "quarterly_results_library", "Reliance Industries Investor Relations", "https://www.ril.com/investors/financial-reporting", "FY27"),
+    ("src-coforge-ir", "comp-coforge-020", "annual_report_library", "Coforge Investor Relations", "https://investors.coforge.com/annual-report", "FY26"),
+    ("src-dixon-ir", "comp-dixon-021", "quarterly_results_library", "Dixon Investor Relations", "https://www.dixoninfo.com/financial-performance", "FY26"),
+    ("src-astral-ir", "comp-astral-022", "annual_report_library", "Astral Investor Relations", "https://www.astralltd.com/investors/report-accounts/", "FY26"),
+]
+
+# Verbatim excerpts from issuer earnings-call transcripts. The PDF page number is
+# the physical PDF page (1-based), so the evidence drawer can open the right page.
+VERIFIED_TRANSCRIPT_EXCERPTS = [
+    {
+        "doc_id": "src-coforge-q4-fy26-call", "company_id": "comp-coforge-020",
+        "publisher": "Coforge Investor Relations", "url": "https://investors.coforge.com/hubfs/Coforge-Limited-Earnings-Call-Transcript-Q4FY26%20_AJ.pdf?hsLang=en",
+        "published": "2026-05-05T00:00:00Z", "period": "Q4_FY26", "pages": 27,
+        "items": [
+            (8, "Looking ahead, we anticipate free cash flow to PAT to be maintained at 100% from\nFY27 onwards in contrast to our earlier guidance of 70 to 80%.", "fcf_to_pat", "FY27", "100", "100", "percentage", "consolidated", "Earlier corridor was 70–80%."),
+            (8, "EBITDA margins of 20.5% to 21% in FY27 on a consolidated basis, which is including\nEncora", "ebitda_margin", "FY27", "20.5", "21", "percentage", "consolidated", "Includes Encora."),
+        ],
+    },
+    {
+        "doc_id": "src-dixon-q4-fy26-call", "company_id": "comp-dixon-021",
+        "publisher": "Dixon Technologies Investor Relations", "url": "https://dixon-website.s3.ap-south-1.amazonaws.com/uploads/17eb4df3-5044-40f5-b3c4-3def219cbd19-EarningTranscriptQ4FY26.pdf",
+        "published": "2026-05-12T00:00:00Z", "period": "Q4_FY26", "pages": 20,
+        "items": [
+            (14, "Next\nyear, we are targeting almost INR56,000 crores without the Vivo numbers, and mobile volume\nbeing flat. If Vivo comes in, then it's a very major trigger. We feel that without the Vivo also,\nthe company will keep growing at almost 15% to 17%.", "revenue", "FY27", None, None, "crore", "reported", "Approximately INR56,000 crore; excludes Vivo and assumes flat mobile volume."),
+        ],
+    },
 ]
 
 # Exact issuer-published snapshots verified on 2026-10-29. These are deliberately
@@ -103,5 +128,39 @@ def seed_verified_research_evidence(repo: FinnRepository) -> None:
                  value, unit, snapshot["period_start"], snapshot["period_end"],
                  "quarter" if snapshot["period"].startswith("Q") else "annual",
                  snapshot["period"], json.dumps([evidence_id]), snapshot["published"]),
+            )
+
+    for transcript in VERIFIED_TRANSCRIPT_EXCERPTS:
+        repo.store_source_document(
+            doc_id=transcript["doc_id"], company_id=transcript["company_id"],
+            source_type="earnings_transcript", publisher=transcript["publisher"],
+            source_url=transcript["url"], content_hash=f"verified-excerpts-v1:{transcript['doc_id']}",
+            file_size_bytes=0, page_count=transcript["pages"],
+            published_at_utc=transcript["published"], fiscal_period=transcript["period"],
+            local_path="", parser_version="verified-transcript-v1", status="verified_excerpt",
+        )
+        page_texts = {}
+        for page, excerpt, *_ in transcript["items"]:
+            page_texts.setdefault(page, []).append(excerpt)
+        for page, excerpts in page_texts.items():
+            repo.store_source_page(f"page-{transcript['doc_id']}-{page}", transcript["doc_id"],
+                                   page, "\n\n".join(excerpts), printed_label=f"PDF page {page}")
+        for index, (page, excerpt, metric, target_period, low, high, unit, basis, conditions) in enumerate(transcript["items"], 1):
+            page_id = f"page-{transcript['doc_id']}-{page}"
+            evidence_id = f"ev-{transcript['doc_id']}-{index}"
+            offset = "\n\n".join(page_texts[page]).find(excerpt)
+            repo.store_evidence_span(evidence_id, page_id, offset, offset + len(excerpt), excerpt)
+            repo.conn.execute(
+                """INSERT OR REPLACE INTO guidance_statements
+                   (id, company_id, metric, speaker_role, speaker_name, stated_at_utc,
+                    target_period, low_decimal, high_decimal, unit, currency, basis,
+                    qualitative_text, conditions, evidence_ids_json, status, created_at_utc)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, 'original', ?)""",
+                (f"guidance-{transcript['doc_id']}-{index}", transcript["company_id"], metric,
+                 "CFO" if transcript["company_id"] == "comp-coforge-020" else "MD",
+                 "Saurabh Goel" if transcript["company_id"] == "comp-coforge-020" else "Atul Lall",
+                 transcript["published"], target_period, low, high, unit, basis,
+                 conditions if low is None else None, conditions,
+                 json.dumps([evidence_id]), transcript["published"]),
             )
     repo.conn.commit()

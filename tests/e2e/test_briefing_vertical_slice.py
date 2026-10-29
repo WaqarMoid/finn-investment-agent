@@ -33,7 +33,7 @@ class TestBriefingVerticalSlice(unittest.TestCase):
             page = browser.new_page(viewport={"width": 390, "height": 844})
             page.goto(f"{self.server_url}/#/briefing", wait_until="networkidle")
             page.wait_for_selector(".briefing-screen")
-            self.assertIn("What changed?", page.content())
+            self.assertIn("Portfolio pulse", page.content())
             page.get_by_role("button", name="Custom").click()
             self.assertEqual(page.locator("input[type=date]").count(), 2)
             page.locator("#briefing-start").fill("2026-10-22")

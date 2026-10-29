@@ -126,10 +126,10 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
           <>
             {/* Issuer Metadata Pill Group */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
-              <span className="chip">🏢 {data.company.legal_name}</span>
-              <span className="chip">📄 {data.document.publisher}</span>
-              {data.document.fiscal_period && <span className="chip">📅 {data.document.fiscal_period}</span>}
-              <span className="chip">📍 Page {data.pdf_page_1based}</span>
+              <span className="chip">{data.company.legal_name}</span>
+              <span className="chip">{data.document.publisher}</span>
+              {data.document.fiscal_period && <span className="chip">{data.document.fiscal_period}</span>}
+              <span className="chip">Page {data.pdf_page_1based}</span>
             </div>
 
             {/* Verbatim Excerpt Card */}
@@ -163,7 +163,7 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
               {data.document.source_url && (
                 <a
                   className="button accent"
-                  href={data.document.source_url}
+                  href={data.document.source_url.endsWith(".pdf") || data.document.source_url.includes(".pdf?") ? `${data.document.source_url.split("#")[0]}#page=${data.pdf_page_1based}` : data.document.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ width: "100%", justifyContent: "center" }}

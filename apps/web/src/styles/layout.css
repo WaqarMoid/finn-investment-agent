@@ -120,26 +120,26 @@
   width: min(100%, 780px);
   min-height: calc(100dvh - 60px);
   margin: 0 auto;
-  padding: 18px 16px calc(92px + env(safe-area-inset-bottom, 0));
+  padding: 24px 16px calc(84px + env(safe-area-inset-bottom, 0));
 }
 
 /* Revolut Floating Bottom Navigation Dock */
 .bottom-nav {
   position: fixed;
   z-index: 50;
-  left: 16px;
-  right: 16px;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  height: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(64px + env(safe-area-inset-bottom, 0));
   display: flex;
   align-items: center;
   padding: 5px;
   border: 1px solid var(--line);
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border-radius: 0;
+  background: var(--surface);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  box-shadow: var(--shadow-float);
+  box-shadow: none;
 }
 
 .nav-item {
@@ -178,7 +178,7 @@
 
 /* Headings */
 .screen-heading {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .screen-kicker {
@@ -191,7 +191,7 @@
 
 .screen-title {
   margin-top: 4px;
-  font-size: clamp(28px, 7vw, 40px);
+  font-size: clamp(28px, 6vw, 36px);
   line-height: 1.05;
   letter-spacing: -0.04em;
   font-weight: 800;
@@ -213,7 +213,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: none;
   transition: border-color 0.15s ease;
 }
 
@@ -498,14 +498,64 @@
   flex-shrink: 0;
 }
 
-.avatar-infy { background: linear-gradient(135deg, #0075ff, #0052cc); }
-.avatar-tcs { background: linear-gradient(135deg, #8a2be2, #4b0082); }
-.avatar-hcltech { background: linear-gradient(135deg, #00b88b, #007a5c); }
-.avatar-reliance { background: linear-gradient(135deg, #e23b4a, #a61c28); }
-.avatar-coforge { background: linear-gradient(135deg, #ff9800, #cc7a00); }
-.avatar-dixon { background: linear-gradient(135deg, #00bcd4, #00838f); }
-.avatar-astral { background: linear-gradient(135deg, #3f51b5, #1a237e); }
-.avatar-generic { background: linear-gradient(135deg, #5e6573, #3a3f47); }
+.avatar-infy { background: #2857b4; }
+.avatar-tcs { background: #7245a0; }
+.avatar-hcltech { background: #087f75; }
+.avatar-reliance { background: #aa3c52; }
+.avatar-coforge { background: #a86825; }
+.avatar-dixon { background: #176c83; }
+.avatar-astral { background: #4655a0; }
+.avatar-generic { background: #515967; }
+
+.research-help {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.research-switcher {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  scrollbar-width: none;
+}
+
+.research-switcher > button { flex: 0 0 auto; }
+
+.research-coverage-line {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.research-suggestions {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.research-suggestion {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.research-ask { width: 100%; margin-top: 10px; }
 
 /* Revolut Event / Transaction Card */
 .event-card {

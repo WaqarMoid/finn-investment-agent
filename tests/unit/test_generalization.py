@@ -135,15 +135,19 @@ class TestGeneralizationAndHeldOutEvaluation(unittest.TestCase):
         self.assertIn("Page 1", data["evidence_citations"][0]["label"])
 
     def test_held_out_unavailable_data_returns_honest_limitation(self):
-        """Gate: An unseen ticker with unavailable transcript must return empty ledger and clear limitation.
-        Must NOT fabricate a completed guidance ledger or invent financial figures."""
+        """A verified statement may appear before its outcome; unrelated questions stay unanswered."""
         resp = self.client.get("/api/v1/research/DIXON")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
 
         self.assertEqual(data["company"]["symbol"], "DIXON")
-        # Guidance ledger must be empty since transcripts are not present
-        self.assertEqual(data["guidance_ledger"], [])
+        # Issuer transcript supplies a statement, but the FY27 outcome is not assessed.
+        self.assertEqual(len(data["guidance_ledger"]), 1)
+        self.assertEqual(data["guidance_ledger"][0]["assessment"], "not_due")
+        evidence_id = data["guidance_ledger"][0]["stated_evidence_id"]
+        evidence = self.client.get(f"/api/v1/evidence/{evidence_id}")
+        self.assertEqual(evidence.status_code, 200)
+        self.assertEqual(evidence.json()["data"]["pdf_page_1based"], 14)
         self.assertGreaterEqual(len(data["limitations"]), 1)
 
         # Asking an ungrounded speculative question must return explicit limitation
@@ -154,7 +158,22 @@ class TestGeneralizationAndHeldOutEvaluation(unittest.TestCase):
         q_data = resp_q.json()
         self.assertIn("cannot answer", q_data["answer"])
         self.assertEqual(len(q_data["evidence_citations"]), 0)
-        self.assertIn("no verified page excerpt", q_data["limitation"])
+        self.assertIn("No verified page excerpt", q_data["limitation"])
+
+    def test_freeform_questions_use_real_issuer_excerpts(self):
+        for symbol, question, expected, page in [
+            ("COFORGE", "What did management say about free cash flow conversion?", "100%", 8),
+            ("DIXON", "What revenue target did management give excluding Vivo?", "56,000", 14),
+        ]:
+            answer = self.client.post(f"/api/v1/research/{symbol}/ask", json={"question": question})
+            self.assertEqual(answer.status_code, 200)
+            result = answer.json()
+            self.assertIn(expected, result["answer"])
+            self.assertEqual(len(result["evidence_citations"]), 1)
+            evidence_id = result["evidence_citations"][0]["evidence_id"]
+            evidence = self.client.get(f"/api/v1/evidence/{evidence_id}")
+            self.assertEqual(evidence.status_code, 200)
+            self.assertEqual(evidence.json()["data"]["pdf_page_1based"], page)
 
 if __name__ == "__main__":
     unittest.main()

@@ -82,9 +82,10 @@ class TestMobileShell(unittest.TestCase):
             research_btn.click()
             page.wait_for_selector(".research-screen")
             self.assertIn("#/research", page.url)
-            self.assertIn("Follow the evidence", page.content())
+            self.assertIn("Research desk", page.content())
 
             # 5. Official source metadata is available for the default company
+            page.get_by_role("button", name="Sources · 3").click()
             page.wait_for_selector("text=Official source library")
             self.assertGreaterEqual(page.locator("a:has-text('Open official source')").count(), 2)
 
