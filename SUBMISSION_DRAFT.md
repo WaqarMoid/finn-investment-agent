@@ -16,9 +16,12 @@ I built FINN, a mobile-first, evidence-first portfolio briefing and primary-sour
 1. **Evidence-First Portfolio Briefing:** An opinionated, priority-ranked digest that sorts ingested exchange announcements into *Needs Attention*, *Worth a Look*, and *Routine* using deterministic safety rules (auditor distress, insolvency, and corporate actions always elevated). Every headline links to an immutable Evidence Drawer displaying the exact 1-based PDF page and verbatim quote. Unusual price moves (>5%) and volume spikes (>2x vs 20-session baseline) are evaluated with strict non-causal phrasing. All counts reconcile to source filings, and nothing is silently discarded.
 2. **Four-Quarter Management Guidance Ledger:** A signature research desk that extracts forward-looking guidance from official earnings transcripts, matches stated targets against reported financial results in deterministic Python code, and assigns auditable verdicts (*Met*, *Exceeded*, *Missed*, *Not Yet Due*, or *Qualitative Supported*). Both sides of every comparison feature dual-sided evidence inspection with direct primary document excerpts.
 
-- **Repository and setup:** [GitHub Repository Link](https://github.com/mdwaqarmoid/finn) *(tested with clean clone, Docker Compose, and local scripts)*
-- **Local / Preview Deployment:** Runs on `http://localhost:8000` via single unified Docker container or `uvicorn finn.main:app --app-dir apps/api`.
-- **AI build history:** Progress logged packet-by-packet in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md) with authentic verification logs and git commits from T00 to T11.
+- **Prototype URL:** `https://bright-stingray-3.loca.lt` *(Tunnel IP / password if prompted: `14.139.38.125`)*
+- **GitHub Repository:** [https://github.com/WaqarMoid/finn-investment-agent](https://github.com/WaqarMoid/finn-investment-agent)
+- **AI Build History:**
+  - Architecture & Planning (ChatGPT): [https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e](https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e)
+  - Implementation Transcript (Antigravity): [`docs/ai_build_history_transcript.jsonl`](docs/ai_build_history_transcript.jsonl)
+  - Verification & Status Ledger: [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md)
 
 ### Key Product & Technical Choices
 - **Deterministic Financial Logic:** Large Language Models are strictly confined to identifying candidates and formatting. All math (YoY growth, percentage-point deltas on operating margins, 20-session volume baselines, Q4 derivations as `FY - 9M`, and guidance band evaluations) is computed in deterministic, audited Python code. Bank EBITDA is explicitly suppressed.
