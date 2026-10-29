@@ -3,7 +3,7 @@ services:
     name: finn-investment-agent
     runtime: docker
     plan: free
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health/live
