@@ -27,7 +27,8 @@ jobs:
         run: |
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:10000/api/v1/health/live >/dev/null \
-              && curl --fail --silent http://127.0.0.1:10000/api/v1/health/ready >/dev/null; then
+              && curl --fail --silent http://127.0.0.1:10000/api/v1/health/ready >/dev/null \
+              && curl --fail --silent http://127.0.0.1:10000/ | grep --quiet '<div id="root"></div>'; then
               exit 0
             fi
             sleep 2

@@ -28,6 +28,7 @@ COPY --from=frontend-builder /app/web/dist /app/web/dist
 RUN mkdir -p /tmp/finn-data
 ENV DATA_DIR=/tmp/finn-data
 ENV DATABASE_PATH=/tmp/finn-data/finn.db
+ENV WEB_DIST_PATH=/app/web/dist
 ENV PORT=10000
 ENV HOST=0.0.0.0
 

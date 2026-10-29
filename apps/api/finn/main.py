@@ -115,8 +115,20 @@ app.include_router(briefing_router, prefix="/api/v1")
 app.include_router(events_router, prefix="/api/v1")
 app.include_router(research_router, prefix="/api/v1")
 
-# Static frontend serving
-web_dist_path = Path(__file__).resolve().parent.parent.parent / "web" / "dist"
+# Static frontend serving. Resolve both the repository layout
+# (`apps/web/dist`) and the production image layout (`/app/web/dist`).
+def _resolve_web_dist_path() -> Path:
+    override = os.getenv("WEB_DIST_PATH")
+    if override:
+        return Path(override).expanduser().resolve()
+
+    candidates = [Path.cwd() / "web" / "dist", Path.cwd() / "apps" / "web" / "dist"]
+    for parent in Path(__file__).resolve().parents:
+        candidates.extend((parent / "web" / "dist", parent / "apps" / "web" / "dist"))
+    return next((candidate for candidate in candidates if candidate.is_dir()), candidates[0])
+
+
+web_dist_path = _resolve_web_dist_path()
 
 if web_dist_path.exists():
     # Mount static assets
