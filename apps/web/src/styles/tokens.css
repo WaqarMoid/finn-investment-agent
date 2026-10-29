@@ -29,7 +29,7 @@
   --radius-card: 20px;
   --radius-panel: 24px;
   --radius-sheet: 28px;
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --min-touch-target: 44px;
 }
 
