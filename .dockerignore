@@ -1,0 +1,16 @@
+.git
+.github
+.pytest_cache
+.playwright
+**/__pycache__
+**/*.py[cod]
+**/node_modules
+**/dist
+**/.env*
+data
+docs
+research
+tools
+tests
+*.log
+cloudflared.exe

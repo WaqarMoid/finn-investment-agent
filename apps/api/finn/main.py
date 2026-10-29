@@ -30,8 +30,10 @@ async def lifespan(app: FastAPI):
         repo = DataRepository(conn)
         repo.seed_master_data()
 
-        # Replay uses deterministic fixtures. Live mode performs a best-effort
-        # current-day NSE sync, so test files never masquerade as live data.
+        # Replay uses deterministic fixtures. A live NSE request is deliberately
+        # opt-in at startup: deployment platforms need the HTTP port to open
+        # promptly, and upstream availability must never decide whether FINN boots.
+        # Live date-window requests still sync from NSE in the API layer.
         has_events = conn.execute("SELECT count(*) FROM announcements").fetchone()[0]
         if has_events == 0:
             from finn.adapters.exchange_adapter import FixtureExchangeAdapter, NSEExchangeAdapter
@@ -41,7 +43,7 @@ async def lifespan(app: FastAPI):
                 fixture_ann_path = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
                 if fixture_ann_path.exists():
                     service.ingest(FixtureExchangeAdapter(fixture_path=str(fixture_ann_path)))
-            else:
+            elif os.getenv("FINN_STARTUP_SYNC", "false").lower() in {"1", "true", "yes"}:
                 today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
                 service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
 
