@@ -34,6 +34,7 @@ data/**/*.db-shm
 # Test coverage & logs
 coverage/
 *.log
+/tools/cloudflared.exe
 .pytest_cache/
 .playwright/
 
