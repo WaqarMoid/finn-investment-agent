@@ -1,0 +1,175 @@
+{
+  "base_url": "https://finn-briefing-agent.loca.lt",
+  "results": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "initial_text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nLoading live portfolio events...\nBriefing\nResearch\nWatchlist",
+      "dimensions": {
+        "scrollWidth": 390,
+        "clientWidth": 390
+      },
+      "window_controls": [
+        {
+          "label": "Last 24h",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nTotal Events: 113\nSource Filings: 122\nInterval: Past 24 Hours\nNeeds Attention\n28\nPrioritized by severity\nTransrail Lighting Limited (TRANSRAILL)\n2026-10-29\nAnalysts/Institutional Investor Meet/Con. Call Updates\n\nTransrail Lighting Limited has informed the Exchange about Schedule of Earnings call on Wednesday, November 4, 2026, at 12:30 P.M. IST, for Unaudited Financial Results for the quarter and half ended September 30, 2026\n\nRESULTS\nInspect Source \u2192\nVedanta Limited (VEDL)\n2026-10-"
+        },
+        {
+          "label": "7 Days",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nTotal Events: 113\nSource Filings: 122\nInterval: Past 7 Days\nLoading live portfolio events...\nNeeds Attention\n28\nPrioritized by severity\nTransrail Lighting Limited (TRANSRAILL)\n2026-10-29\nAnalysts/Institutional Investor Meet/Con. Call Updates\n\nTransrail Lighting Limited has informed the Exchange about Schedule of Earnings call on Wednesday, November 4, 2026, at 12:30 P.M. IST, for Unaudited Financial Results for the quarter and half ended September 30, 2026\n\nRESULTS\nInspect Source \u2192\n"
+        },
+        {
+          "label": "Custom",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nTotal Events: 113\nSource Filings: 122\nInterval: Custom Window\nLoading live portfolio events...\nNeeds Attention\n28\nPrioritized by severity\nTransrail Lighting Limited (TRANSRAILL)\n2026-10-29\nAnalysts/Institutional Investor Meet/Con. Call Updates\n\nTransrail Lighting Limited has informed the Exchange about Schedule of Earnings call on Wednesday, November 4, 2026, at 12:30 P.M. IST, for Unaudited Financial Results for the quarter and half ended September 30, 2026\n\nRESULTS\nInspect Source "
+        }
+      ],
+      "custom_date_inputs": 0,
+      "api_requests": [
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-10-28T06%3A58%3A43.682Z&end=2026-10-29T06%3A58%3A43.682Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/health/ready",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-10-22T06%3A58%3A45.380Z&end=2026-10-29T06%3A58%3A45.380Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-09-29T06%3A58%3A45.915Z&end=2026-10-29T06%3A58%3A45.915Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/INFY",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/INFY",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/HCLTECH",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/TCS",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/RELIANCE",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/watchlist",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/notification-rules",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/alerts"
+      ],
+      "research": {
+        "INFY": {
+          "has_company": true,
+          "sources_text": "Primary Sources (5)",
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nResearch\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nInfosys Limited\nNSE: INFY \u2022 ISIN: INE009A01021 \u2022 Information Technology\nAs of: 2026-10-29\nSource: Annual Reports + Transcripts\nPromises & Outcomes (4Q Ledger)\nOverview Facts\nPrimary Sources (5)\n4-Quarter Management Guidance Ledger\nPure primary transcript & results audit\nQ1 FY25\n(CC Revenue Growth & Margin)\nMET\nSTATED GUIDANCE\nCC revenue growth 1.0% to 3.0% YoY; operating margin 20% to 22% (stated Apr 18, 2024 by CFO Jayesh Sanghrajka)\nInspect Stated Evidence [1]\nREPORTED OUTCOME\nCC revenue growth +2.5% YoY; operating margin 21.1% (reported Jul 18, 2024)\nInspect Reported Evidence [2]\nAssessment verdict: Reported actual constant currency revenue growth of 2.5% and operating margin of 21.1% both fell comfortably within guided bounds (1.0%\u20133.0% growth, 20%\u201322% margin).\nQ2 FY25\n(CC Revenue Growth (U"
+        },
+        "HCLTECH": {
+          "has_company": true,
+          "sources_text": null,
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nSearching...\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nFinding primary annual reports & transcripts...\n\u2713 Finding reports\n\u2713 Reading sources\n\u2022 Checking figures\n\u2022 Preparing ledger\nBriefing\nResearch\nWatchlist"
+        },
+        "TCS": {
+          "has_company": true,
+          "sources_text": "Primary Sources (5)",
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nResearch\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nInfosys Limited\nNSE: INFY \u2022 ISIN: INE009A01021 \u2022 Information Technology\nAs of: 2026-10-29\nSource: Annual Reports + Transcripts\nPromises & Outcomes (4Q Ledger)\nOverview Facts\nPrimary Sources (5)\n4-Quarter Management Guidance Ledger\nPure primary transcript & results audit\nQ1 FY25\n(CC Revenue Growth & Margin)\nMET\nSTATED GUIDANCE\nCC revenue growth 1.0% to 3.0% YoY; operating margin 20% to 22% (stated Apr 18, 2024 by CFO Jayesh Sanghrajka)\nInspect Stated Evidence [1]\nREPORTED OUTCOME\nCC revenue growth +2.5% YoY; operating margin 21.1% (reported Jul 18, 2024)\nInspect Reported Evidence [2]\nAssessment verdict: Reported actual constant currency revenue growth of 2.5% and operating margin of 21.1% both fell comfortably within guided bounds (1.0%\u20133.0% growth, 20%\u201322% margin).\nQ2 FY25\n(CC Revenue Growth (U"
+        },
+        "RELIANCE": {
+          "has_company": true,
+          "sources_text": "Primary Sources (0)",
+          "no_guidance": true,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nResearch\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nTata Consultancy Services Limited\nNSE: TCS \u2022 ISIN: INE467B01029 \u2022 Information Technology\nAs of: 2026-10-29\nSource: Annual Reports + Transcripts\nPromises & Outcomes (4Q Ledger)\nOverview Facts\nPrimary Sources (0)\n4-Quarter Management Guidance Ledger\nPure primary transcript & results audit\nNo guidance ledger records for this company yet. Guidance extraction runs against official earnings call transcripts.\nAsk a Focused Question About TCS\n\nAnswers are strictly grounded in primary annual reports and earnings transcripts. Speculation and ungrounded prose are rejected.\n\n\ud83d\udcac What changed in guidance?\n\ud83d\udcac Did cash track profit?\n\ud83d\udcac What evidence challenges the growth story?\nAsk\nVERIFIED SOURCE GROUNDING & DATA BOUNDARIES\nBSE exchange filings are unavailable due to upstream Cloudflare anti-bot verification (HT"
+        }
+      },
+      "watchlist_excerpt": "FINN\nBRIEFING\nLive\nWatchlist & Notification Rules\n\nSession-isolated preferences \u2022 Anonymous reviewer session active\n\nNotification Trigger Thresholds\nPrice Move Threshold (%)\nAlert if daily move strictly exceeds this\nVolume Multiple (vs 20D)\nAlert if volume > N \u00d7 20-day mean\nTest on recent data\nSave Alert Rules\nSession Alerts Inbox\n\nNo alerts triggered yet for this session.\n\nMonitored Portfolio Holdings (18 Companies)\nASTRAL\n\nAstral Limited \u2022 Building Products / Pipes\n\nActive Monitoring\nCERA\n\nCera Sanitaryware Limited \u2022 Building Products\n\nActive Monitoring\nCOFORGE\n\nCoforge Limited \u2022 Information Technology\n\nActive Monitoring\nDIXON\n\nDixon Technologies (India) Limited \u2022 Electronics Manufacturing\n\nActive Monitoring\nDRREDDY\n\nDr. Reddy's Laboratories Limited \u2022 Pharmaceuticals & Healthcare\n\nActive Monitoring\nHCLTECH\n\nHCL Technologies Limited \u2022 Information Technology\n\nActive Monitoring\nHDFCBANK\n\nHDFC Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nHINDUNILVR\n\nHindustan Unilever Limited \u2022 Fast Moving Consumer Goods\n\nActive Monitoring\nICICIBANK\n\nICICI Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nINFY\n\nInfosys Limited \u2022 Information Technology\n\nActive Monitoring\nITC\n\nITC Limite",
+      "theme_toggle_count": 0,
+      "console_errors": [
+        "Access to font at 'https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2' from origin 'https://finn-briefing-agent.loca.lt' has been blocked by CORS policy: Request header field bypass-tunnel-reminder is not allowed by Access-Control-Allow-Headers in preflight response.",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "failed_requests": [
+        "GET https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2: net::ERR_FAILED"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "initial_text_excerpt": "FINN\nBRIEFING\nReplay\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nLoading live portfolio events...\nBriefing\nResearch\nWatchlist",
+      "dimensions": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "window_controls": [
+        {
+          "label": "Last 24h",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nReplay\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nLoading live portfolio events...\nBriefing\nResearch\nWatchlist"
+        },
+        {
+          "label": "7 Days",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nTotal Events: 113\nSource Filings: 122\nInterval: Past 7 Days\nNeeds Attention\n28\nPrioritized by severity\nTransrail Lighting Limited (TRANSRAILL)\n2026-10-29\nAnalysts/Institutional Investor Meet/Con. Call Updates\n\nTransrail Lighting Limited has informed the Exchange about Schedule of Earnings call on Wednesday, November 4, 2026, at 12:30 P.M. IST, for Unaudited Financial Results for the quarter and half ended September 30, 2026\n\nRESULTS\nInspect Source \u2192\nVedanta Limited (VEDL)\n2026-10-29"
+        },
+        {
+          "label": "Custom",
+          "count": 1,
+          "url": "https://finn-briefing-agent.loca.lt/",
+          "text_excerpt": "FINN\nBRIEFING\nLive\nPortfolio Briefing\n\n18 monitored companies \u2022 Mode: Live / IST\n\nLast 24h\n7 Days\nCustom\nRefresh\nTotal Events: 113\nSource Filings: 122\nInterval: Custom Window\nLoading live portfolio events...\nNeeds Attention\n28\nPrioritized by severity\nTransrail Lighting Limited (TRANSRAILL)\n2026-10-29\nAnalysts/Institutional Investor Meet/Con. Call Updates\n\nTransrail Lighting Limited has informed the Exchange about Schedule of Earnings call on Wednesday, November 4, 2026, at 12:30 P.M. IST, for Unaudited Financial Results for the quarter and half ended September 30, 2026\n\nRESULTS\nInspect Source "
+        }
+      ],
+      "custom_date_inputs": 0,
+      "api_requests": [
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-10-28T06%3A58%3A56.856Z&end=2026-10-29T06%3A58%3A56.856Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/health/ready",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-10-22T06%3A58%3A58.512Z&end=2026-10-29T06%3A58%3A58.512Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/briefing?start=2026-09-29T06%3A58%3A59.062Z&end=2026-10-29T06%3A58%3A59.062Z",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/INFY",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/INFY",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/HCLTECH",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/TCS",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/research/RELIANCE",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/watchlist",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/notification-rules",
+        "GET https://finn-briefing-agent.loca.lt/api/v1/alerts"
+      ],
+      "research": {
+        "INFY": {
+          "has_company": true,
+          "sources_text": null,
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nSearching...\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nFinding primary annual reports & transcripts...\n\u2713 Finding reports\n\u2713 Reading sources\n\u2022 Checking figures\n\u2022 Preparing ledger\nBriefing\nResearch\nWatchlist"
+        },
+        "HCLTECH": {
+          "has_company": true,
+          "sources_text": null,
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nSearching...\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nFinding primary annual reports & transcripts...\n\u2713 Finding reports\n\u2713 Reading sources\n\u2022 Checking figures\n\u2022 Preparing ledger\nBriefing\nResearch\nWatchlist"
+        },
+        "TCS": {
+          "has_company": true,
+          "sources_text": "Primary Sources (1)",
+          "no_guidance": false,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nResearch\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nHCL Technologies Limited\nNSE: HCLTECH \u2022 ISIN: INE860A01027 \u2022 Information Technology\nAs of: 2026-10-29\nSource: Annual Reports + Transcripts\nPromises & Outcomes (4Q Ledger)\nOverview Facts\nPrimary Sources (1)\n4-Quarter Management Guidance Ledger\nPure primary transcript & results audit\nQ1 FY26\n(Services CC Growth)\nMET\nSTATED GUIDANCE\nServices revenue CC growth guided at 3.0% to 5.0% YoY (stated Apr 2025)\nInspect Stated Evidence [1]\nREPORTED OUTCOME\nServices CC growth achieved +3.8% YoY (reported Jul 2025)\nInspect Reported Evidence [2]\nAssessment verdict: Services growth of 3.8% fell within the guided 3.0%\u20135.0% range.\nQ2 FY26\n(EBIT Operating Margin)\nMET\nSTATED GUIDANCE\nOperating EBIT margin guided at 18.0% to 19.0% (stated Jul 2025)\nInspect Stated Evidence [1]\nREPORTED OUTCOME\nReported EBIT margin 1"
+        },
+        "RELIANCE": {
+          "has_company": true,
+          "sources_text": "Primary Sources (0)",
+          "no_guidance": true,
+          "error": null,
+          "body_excerpt": "FINN\nBRIEFING\nLive\nPRIMARY-SOURCE RESEARCH DESK\nResearch\nQuick view:\nINFY\nHCLTECH\nTCS\nRELIANCE\nTata Consultancy Services Limited\nNSE: TCS \u2022 ISIN: INE467B01029 \u2022 Information Technology\nAs of: 2026-10-29\nSource: Annual Reports + Transcripts\nPromises & Outcomes (4Q Ledger)\nOverview Facts\nPrimary Sources (0)\n4-Quarter Management Guidance Ledger\nPure primary transcript & results audit\nNo guidance ledger records for this company yet. Guidance extraction runs against official earnings call transcripts.\nAsk a Focused Question About TCS\n\nAnswers are strictly grounded in primary annual reports and earnings transcripts. Speculation and ungrounded prose are rejected.\n\n\ud83d\udcac What changed in guidance?\n\ud83d\udcac Did cash track profit?\n\ud83d\udcac What evidence challenges the growth story?\nAsk\nVERIFIED SOURCE GROUNDING & DATA BOUNDARIES\nBSE exchange filings are unavailable due to upstream Cloudflare anti-bot verification (HT"
+        }
+      },
+      "watchlist_excerpt": "FINN\nBRIEFING\nLive\nWatchlist & Notification Rules\n\nSession-isolated preferences \u2022 Anonymous reviewer session active\n\nNotification Trigger Thresholds\nPrice Move Threshold (%)\nAlert if daily move strictly exceeds this\nVolume Multiple (vs 20D)\nAlert if volume > N \u00d7 20-day mean\nTest on recent data\nSave Alert Rules\nSession Alerts Inbox\n\nNo alerts triggered yet for this session.\n\nMonitored Portfolio Holdings (0 Companies)\nBriefing\nResearch\nWatchlist",
+      "theme_toggle_count": 0,
+      "console_errors": [
+        "Access to font at 'https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2' from origin 'https://finn-briefing-agent.loca.lt' has been blocked by CORS policy: Request header field bypass-tunnel-reminder is not allowed by Access-Control-Allow-Headers in preflight response.",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "failed_requests": [
+        "GET https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2: net::ERR_FAILED"
+      ]
+    }
+  ]
+}

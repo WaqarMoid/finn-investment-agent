@@ -50,14 +50,9 @@ class TestBriefingAPI(unittest.TestCase):
         data = response.json()
         self.assertIn("summary", data["data"])
 
-    def test_evidence_drawer_endpoint(self):
+    def test_removed_demo_evidence_is_not_fabricated(self):
         response = self.client.get("/api/v1/evidence/ev-preview-101")
-        self.assertEqual(response.status_code, 200)
-        data = response.json()["data"]
-        self.assertEqual(data["evidence_id"], "ev-preview-101")
-        self.assertEqual(data["pdf_page_1based"], 4)
-        self.assertIn("revenue growth guidance", data["excerpt"].lower())
-        self.assertEqual(data["company"]["legal_name"], "Infosys Limited")
+        self.assertEqual(response.status_code, 404)
 
 if __name__ == "__main__":
     unittest.main()

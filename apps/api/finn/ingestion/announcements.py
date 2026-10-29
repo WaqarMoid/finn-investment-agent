@@ -10,9 +10,11 @@ from finn.jobs.worker import JobManager
 
 # Basic rule-based classification dictionary matching 17 reference categories
 CATEGORY_KEYWORDS = {
-    "results": ["financial result", "financial results", "quarterly result", "outcome of board meeting", "audited result"],
+    # Specific communication types must precede broad "results" phrases. An
+    # earnings-call transcript often mentions financial results in its title.
+    "earnings_call": ["earnings call", "concall", "conference call", "transcript", "analyst meet transcript"],
+    "results": ["financial result", "financial results", "quarterly result", "audited result", "unaudited result"],
     "dividend": ["dividend", "interim dividend", "final dividend", "record date for dividend"],
-    "earnings_call": ["earnings call", "concall", "transcript", "analyst meet transcript"],
     "investor_meetings": ["investor presentation", "analyst meet", "investor meet", "institutional investor"],
     "management_change": ["resignation", "appointment", "chief executive officer", "chief financial officer", "kmp", "cessation"],
     "m_and_a": ["acquisition", "amalgamation", "merger", "scheme of arrangement", "takeover"],
@@ -48,7 +50,8 @@ class AnnouncementIngestionService:
         adapter: ExchangeAdapter,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        max_pages: int = 3
+        max_pages: int = 3,
+        allowed_symbols: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         sync_id = f"sync-{uuid.uuid4()}"
         now_utc = datetime.now(timezone.utc).isoformat()
@@ -70,6 +73,7 @@ class AnnouncementIngestionService:
         inserted_announcements = 0
         duplicate_announcements = 0
         unresolved_companies = 0
+        filtered_out = 0
         queued_attachments = 0
 
         # If adapter failed or returned partial, record sync run and DO NOT advance watermark
@@ -93,7 +97,11 @@ class AnnouncementIngestionService:
             }
 
         # 2. Process records
+        allowed = {symbol.upper() for symbol in allowed_symbols} if allowed_symbols else None
         for rec in records:
+            if allowed is not None and rec.symbol.upper() not in allowed:
+                filtered_out += 1
+                continue
             # Resolve company
             resolve_res = self.resolver.resolve(rec.symbol)
             if resolve_res["status"] != "resolved" and rec.isin:
@@ -189,7 +197,8 @@ class AnnouncementIngestionService:
             "inserted_announcements": inserted_announcements,
             "duplicate_announcements": duplicate_announcements,
             "unresolved_companies": unresolved_companies,
-            "queued_attachments": queued_attachments
+            "queued_attachments": queued_attachments,
+            "filtered_outside_watchlist": filtered_out,
         }
 
         # 3. Record successful sync run

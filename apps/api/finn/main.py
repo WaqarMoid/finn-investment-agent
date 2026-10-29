@@ -30,16 +30,20 @@ async def lifespan(app: FastAPI):
         repo = DataRepository(conn)
         repo.seed_master_data()
 
-        # Seed initial fixture announcements if database has no events
+        # Replay uses deterministic fixtures. Live mode performs a best-effort
+        # current-day NSE sync, so test files never masquerade as live data.
         has_events = conn.execute("SELECT count(*) FROM announcements").fetchone()[0]
         if has_events == 0:
-            fixture_ann_path = Path(__file__).resolve().parent.parent.parent / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
-            if fixture_ann_path.exists():
-                from finn.adapters.exchange_adapter import FixtureExchangeAdapter
-                from finn.ingestion.announcements import AnnouncementIngestionService
-                adapter = FixtureExchangeAdapter(fixture_path=str(fixture_ann_path))
-                service = AnnouncementIngestionService(conn)
-                service.ingest(adapter)
+            from finn.adapters.exchange_adapter import FixtureExchangeAdapter, NSEExchangeAdapter
+            from finn.ingestion.announcements import AnnouncementIngestionService
+            service = AnnouncementIngestionService(conn)
+            if os.getenv("FINN_MODE", "live").lower() == "replay":
+                fixture_ann_path = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
+                if fixture_ann_path.exists():
+                    service.ingest(FixtureExchangeAdapter(fixture_path=str(fixture_ann_path)))
+            else:
+                today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
+                service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
 
         # Seed primary document and verified guidance evidence
         seed_verified_research_evidence(repo)

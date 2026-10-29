@@ -139,16 +139,10 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
         )}
 
         {error && !data && (
-          <div style={{ padding: "var(--space-4)", background: "#FFF3CD", borderRadius: "var(--radius-control)", marginBottom: "var(--space-4)" }}>
-            <p style={{ fontSize: "0.875rem", color: "#856404", marginBottom: "8px" }}>
-              <strong>Primary Document Citation:</strong>
-            </p>
-            <p style={{ fontSize: "0.8125rem", color: "var(--ink)", marginBottom: "8px" }}>
-              Citation Reference: <code>{evidenceId}</code>
-            </p>
-            <blockquote style={{ fontStyle: "italic", fontSize: "0.875rem", borderLeft: "3px solid var(--accent)", paddingLeft: "8px" }}>
-              &ldquo;With that, our revenue growth guidance for FY &apos;25 is 1% to 3% growth in constant currency. Our operating margin guidance for FY &apos;25 is 20% to 22%.&rdquo;
-            </blockquote>
+          <div className="notice error-notice" role="alert">
+            <strong>Evidence unavailable.</strong>
+            <p style={{ fontSize: "0.8125rem", marginTop: "8px" }}>{error}</p>
+            <p style={{ fontSize: "0.75rem", marginTop: "8px" }}>FINN will not substitute a sample quotation when a citation cannot be retrieved.</p>
           </div>
         )}
 

@@ -136,31 +136,22 @@ class TestGuidanceLedger(unittest.TestCase):
         self.assertTrue(hcl_q3.reported_evidence_id.startswith("ev-"))
 
     def test_research_api_infy(self):
-        """Test GET /api/v1/research/INFY endpoint returning full report with ledger."""
+        """Source links are returned without manufacturing page facts or ledger rows."""
         resp = self.client.get("/api/v1/research/INFY")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
 
         self.assertEqual(data["company"]["symbol"], "INFY")
-        self.assertEqual(len(data["guidance_ledger"]), 4)
-        self.assertGreaterEqual(len(data["overview_facts"]), 3)
-        self.assertGreaterEqual(len(data["source_coverage"]), 1)
+        self.assertEqual(data["guidance_ledger"], [])
+        self.assertEqual(data["overview_facts"], [])
+        self.assertGreaterEqual(len(data["source_coverage"]), 2)
+        self.assertTrue(all(item["source_url"].startswith("https://www.infosys.com/") for item in data["source_coverage"]))
         self.assertGreaterEqual(len(data["limitations"]), 1)
 
-    def test_research_evidence_resolution(self):
-        """Test that stated and reported evidence IDs in the ledger resolve via /api/v1/evidence/{id}."""
-        # Test Stated Evidence
+    def test_legacy_demo_evidence_is_removed(self):
+        """Legacy hand-written demo quotations must not resolve as verified evidence."""
         resp_stated = self.client.get("/api/v1/evidence/ev-preview-101")
-        self.assertEqual(resp_stated.status_code, 200)
-        stated_data = resp_stated.json()["data"]
-        self.assertIn("revenue growth guidance", stated_data["excerpt"])
-        self.assertEqual(stated_data["pdf_page_1based"], 4)
-
-        # Test Reported Evidence
-        resp_reported = self.client.get("/api/v1/evidence/ev-infy-q1fy25-reported")
-        self.assertEqual(resp_reported.status_code, 200)
-        reported_data = resp_reported.json()["data"]
-        self.assertIn("2.5%", reported_data["excerpt"])
+        self.assertEqual(resp_stated.status_code, 404)
 
     def test_bounded_question_api(self):
         """Test POST /api/v1/research/INFY/ask returns grounded citations."""
@@ -169,8 +160,8 @@ class TestGuidanceLedger(unittest.TestCase):
         })
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertIn("revised", data["answer"].lower())
-        self.assertGreater(len(data["evidence_citations"]), 0)
+        self.assertIn("cannot answer", data["answer"].lower())
+        self.assertEqual(len(data["evidence_citations"]), 0)
         self.assertTrue(len(data["limitation"]) > 0)
 
 if __name__ == "__main__":

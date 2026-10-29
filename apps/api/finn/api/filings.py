@@ -1,16 +1,17 @@
 import os
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 from finn.db.database import get_connection
+from finn.db.repository import DataRepository
 from finn.ingestion.announcements import AnnouncementIngestionService
 from finn.adapters.exchange_adapter import FixtureExchangeAdapter, NSEExchangeAdapter
 
 router = APIRouter(tags=["Filings & Ingestion"])
 
-FIXTURE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
+FIXTURE_PATH = Path(__file__).resolve().parents[4] / "tests" / "fixtures" / "source" / "nse_announcements_sample.json"
 
 # In-memory rate limiting tracker: session_id -> last_refresh_timestamp
 _LAST_REFRESH_MAP: Dict[str, float] = {}
@@ -86,7 +87,11 @@ def get_filings(
         conn.close()
 
 @router.post("/api/v1/refresh")
-def refresh_sources(request: Request) -> Dict[str, Any]:
+def refresh_sources(
+    request: Request,
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+) -> Dict[str, Any]:
     session_id = getattr(request.state, "session_id", "default_session")
 
     # In replay mode, bypass external network polling
@@ -97,10 +102,19 @@ def refresh_sources(request: Request) -> Dict[str, Any]:
             "mode": "replay"
         }
 
+    today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date()
+    resolved_end = end_date or today_ist
+    resolved_start = start_date or resolved_end
+    if resolved_start > resolved_end:
+        raise HTTPException(status_code=422, detail="start_date must be on or before end_date")
+    if (resolved_end - resolved_start).days > 31:
+        raise HTTPException(status_code=422, detail="A refresh window may span at most 32 calendar days")
+
     now_ts = datetime.now(timezone.utc).timestamp()
 
     # Rate limiting: max 1 refresh every 10 seconds per session
-    last_ts = _LAST_REFRESH_MAP.get(session_id, 0.0)
+    refresh_key = f"{session_id}:{resolved_start}:{resolved_end}"
+    last_ts = _LAST_REFRESH_MAP.get(refresh_key, 0.0)
     if (now_ts - last_ts) < 10.0:
         remaining = round(10.0 - (now_ts - last_ts), 1)
         raise HTTPException(
@@ -108,21 +122,34 @@ def refresh_sources(request: Request) -> Dict[str, Any]:
             detail=f"Refresh rate limit exceeded. Please wait {remaining}s before refreshing again."
         )
 
-    _LAST_REFRESH_MAP[session_id] = now_ts
+    _LAST_REFRESH_MAP[refresh_key] = now_ts
 
     conn = get_connection()
     try:
         service = AnnouncementIngestionService(conn)
-        # Use fixture adapter if offline / local testing, or live if configured
-        if FIXTURE_PATH.exists():
+        repo = DataRepository(conn)
+        watchlist = repo.get_session_watchlist(session_id)
+        if not watchlist:
+            repo.seed_default_watchlist_for_session(session_id)
+            watchlist = repo.get_session_watchlist(session_id)
+        # Fixtures are deterministic replay/test inputs. Their presence in the
+        # repository must never silently replace the production exchange feed.
+        source = os.getenv("FINN_EXCHANGE_SOURCE", "nse").lower()
+        if source == "fixture":
             adapter = FixtureExchangeAdapter(fixture_path=str(FIXTURE_PATH))
         else:
             adapter = NSEExchangeAdapter()
 
-        res = service.ingest(adapter)
+        res = service.ingest(
+            adapter,
+            start_date=resolved_start.isoformat(),
+            end_date=resolved_end.isoformat(),
+            allowed_symbols=[item["symbol"] for item in watchlist],
+        )
         return {
-            "status": "success",
-            "message": "Ingestion refresh completed",
+            "status": res.get("status", "completed"),
+            "message": "Exchange synchronization completed",
+            "requested_window": {"start_date": resolved_start.isoformat(), "end_date": resolved_end.isoformat()},
             "result": res
         }
     finally:

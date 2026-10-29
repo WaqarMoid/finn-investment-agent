@@ -1,14 +1,16 @@
 import os
 import json
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from typing import Dict, Any, List, Optional
 from finn.db.database import get_connection
+from finn.db.repository import DataRepository
 
 router = APIRouter(prefix="/briefing", tags=["Briefing"])
 
 @router.get("")
 def get_briefing(
+    request: Request,
     start: Optional[str] = Query(None, description="ISO UTC start timestamp"),
     end: Optional[str] = Query(None, description="ISO UTC end timestamp"),
     cursor: Optional[str] = Query(None, description="Snapshot pagination cursor")
@@ -35,10 +37,18 @@ def get_briefing(
             if not start:
                 start = (now - timedelta(days=1)).isoformat()
 
-        # Query event groups within date window
-        # event_date is YYYY-MM-DD
-        start_date = start[:10]
-        end_date = end[:10]
+        try:
+            start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+            end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="start and end must be ISO-8601 timestamps") from exc
+        if start_dt > end_dt:
+            raise HTTPException(status_code=422, detail="start must be before end")
+
+        session_id = getattr(request.state, "session_id", "default_session")
+        repo = DataRepository(conn)
+        if not repo.get_session_watchlist(session_id):
+            repo.seed_default_watchlist_for_session(session_id)
 
         event_rows = conn.execute("""
             SELECT eg.*, c.legal_name, s.symbol as nse_symbol,
@@ -47,9 +57,15 @@ def get_briefing(
             FROM event_groups eg
             JOIN companies c ON eg.company_id = c.id
             LEFT JOIN securities s ON s.company_id = c.id AND s.exchange = 'NSE'
-            WHERE eg.event_date >= ? AND eg.event_date <= ?
+            JOIN watchlist_members wm ON wm.company_id = eg.company_id AND wm.session_id = ?
+            WHERE EXISTS (
+                SELECT 1 FROM announcements wa
+                WHERE wa.event_group_id = eg.id
+                  AND datetime(wa.published_at_utc) >= datetime(?)
+                  AND datetime(wa.published_at_utc) <= datetime(?)
+            )
             ORDER BY eg.score DESC, eg.event_date DESC
-        """, (start_date, end_date)).fetchall()
+        """, (session_id, start_dt.isoformat(), end_dt.isoformat())).fetchall()
 
         # Partition by tier
         needs_attention: List[Dict[str, Any]] = []

@@ -1,6 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import List, Dict, Any, Optional
 import httpx
 from pydantic import BaseModel, Field
@@ -58,14 +59,26 @@ class FixtureExchangeAdapter(ExchangeAdapter):
             return {"records": [], "pages_completed": 0, "total_pages_expected": 0, "status": "completed", "error": None}
 
         records: List[AnnouncementRecord] = []
+        start_bound = datetime.fromisoformat(start_date[:10]).date() if start_date else None
+        end_bound = datetime.fromisoformat(end_date[:10]).date() if end_date else None
         for item in self.fixture_data:
             # Parse published date: e.g. "28-Oct-2026 14:44:26"
             raw_dt = item.get("an_dt", "")
             try:
-                dt_obj = datetime.strptime(raw_dt, "%d-%b-%Y %H:%M:%S").replace(tzinfo=timezone.utc)
+                # NSE publishes `an_dt` in Indian Standard Time. Treating it as UTC
+                # shifts the filing window by 5h30m around day boundaries.
+                dt_obj = datetime.strptime(raw_dt, "%d-%b-%Y %H:%M:%S").replace(
+                    tzinfo=ZoneInfo("Asia/Kolkata")
+                ).astimezone(timezone.utc)
                 dt_utc = dt_obj.isoformat()
             except Exception:
-                dt_utc = datetime.now(timezone.utc).isoformat()
+                continue
+
+            published_date = dt_obj.astimezone(ZoneInfo("Asia/Kolkata")).date()
+            if start_bound and published_date < start_bound:
+                continue
+            if end_bound and published_date > end_bound:
+                continue
 
             records.append(AnnouncementRecord(
                 exchange="NSE",
@@ -101,7 +114,7 @@ class NSEExchangeAdapter(ExchangeAdapter):
         end_date: Optional[str] = None,
         max_pages: int = 3
     ) -> Dict[str, Any]:
-        url = "https://www.nseindia.com/api/corporate-announcements?index=equities"
+        url = "https://www.nseindia.com/api/corporate-announcements"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*",
@@ -109,7 +122,14 @@ class NSEExchangeAdapter(ExchangeAdapter):
         }
         try:
             with httpx.Client(headers=headers, timeout=self.timeout, follow_redirects=True) as client:
-                r = client.get(url)
+                params = {"index": "equities"}
+                # NSE expects DD-MM-YYYY. Supplying these parameters is what makes
+                # historical 7-day and custom windows return more than the latest feed.
+                if start_date:
+                    params["from_date"] = datetime.fromisoformat(start_date[:10]).strftime("%d-%m-%Y")
+                if end_date:
+                    params["to_date"] = datetime.fromisoformat(end_date[:10]).strftime("%d-%m-%Y")
+                r = client.get(url, params=params)
                 if r.status_code == 403 or r.status_code == 429:
                     return {
                         "records": [],

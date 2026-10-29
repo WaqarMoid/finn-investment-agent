@@ -1,21 +1,13 @@
-"""ResearchEngine for FINN Primary-Source Research Desk.
-Generates source-backed corporate profiles, 4-quarter Management Guidance Ledgers,
-and bounded question answering with strict evidence grounding.
-"""
+"""Evidence-bound research reports built from indexed primary sources."""
 
+import json
 import sqlite3
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from finn.db.resolver import CompanyResolver
 from finn.db.repository import FinnRepository
-from finn.research.guidance_ledger import (
-    GuidanceLedgerRow,
-    INFY_VERIFIED_LEDGER,
-    HCLTECH_VERIFIED_LEDGER,
-    assess_guidance_outcome,
-    GuidanceStatementModel,
-)
+from finn.db.resolver import CompanyResolver
+
 
 class ResearchEngine:
     def __init__(self, conn: sqlite3.Connection):
@@ -26,241 +18,155 @@ class ResearchEngine:
     def resolve_company(self, query: str) -> Optional[Dict[str, Any]]:
         return self.resolver.resolve(query)
 
-    def get_guidance_ledger(self, company_symbol: str) -> List[GuidanceLedgerRow]:
-        sym = company_symbol.upper().replace(".NS", "").replace(".BO", "")
-        if sym in ("INFY", "INFOSYS"):
-            return INFY_VERIFIED_LEDGER
-        elif sym in ("HCLTECH", "HCL"):
-            return HCLTECH_VERIFIED_LEDGER
-        else:
-            # Generic ticker: return empty or structured unguided state
-            return []
+    def get_guidance_ledger(self, company_symbol: str) -> List[Dict[str, Any]]:
+        """Return only persisted guidance rows with inspectable evidence IDs."""
+        rows = self.conn.execute(
+            """SELECT gs.*, ga.assessment, ga.explanation,
+                      ga.evidence_ids_json AS outcome_evidence
+               FROM guidance_statements gs
+               LEFT JOIN guidance_assessments ga ON ga.guidance_id = gs.id
+               JOIN securities s ON s.company_id = gs.company_id AND s.exchange = 'NSE'
+               WHERE s.symbol = ? ORDER BY gs.stated_at_utc DESC""",
+            (company_symbol.upper().replace(".NS", ""),),
+        ).fetchall()
+        ledger: List[Dict[str, Any]] = []
+        for row in rows:
+            stated_ids = json.loads(row["evidence_ids_json"] or "[]")
+            outcome_ids = json.loads(row["outcome_evidence"] or "[]") if row["outcome_evidence"] else []
+            if not stated_ids:
+                continue
+            low, high = row["low_decimal"], row["high_decimal"]
+            target = f"{low}–{high} {row['unit']}" if low and high else (row["qualitative_text"] or "Disclosed target")
+            ledger.append({
+                "target_period": row["target_period"],
+                "metric_label": row["metric"].replace("_", " ").title(),
+                "stated_summary": target,
+                "stated_evidence_id": stated_ids[0],
+                "reported_summary": row["explanation"] or "Outcome has not been assessed",
+                "reported_evidence_id": outcome_ids[0] if outcome_ids else None,
+                "assessment": row["assessment"] or "not_due",
+                "explanation": row["explanation"] or "No evidence-backed outcome is indexed yet.",
+                "is_revised": bool(row["revises_id"]),
+                "original_target": None,
+            })
+        return ledger
 
-    def get_overview_facts(self, company_symbol: str, company_id: str) -> List[Dict[str, Any]]:
-        sym = company_symbol.upper().replace(".NS", "").replace(".BO", "")
-        if sym in ("INFY", "INFOSYS"):
-            return [
-                {
-                    "label": "Consolidated FY24 Revenue",
-                    "value": "₹153,670 Cr",
-                    "growth": "+4.7% CC YoY",
-                    "evidence_id": "ev-infy-fact-rev",
-                    "citation_num": 1,
-                    "excerpt": "Consolidated Revenue from Operations reached Rs 153,670 crore, a growth of 4.7% in constant currency."
-                },
-                {
-                    "label": "FY24 Operating Margin",
-                    "value": "21.4%",
-                    "growth": "-40 bps YoY",
-                    "evidence_id": "ev-infy-fact-opm",
-                    "citation_num": 2,
-                    "excerpt": "Operating Margin delivered 21.4% for FY24."
-                },
-                {
-                    "label": "FY24 Net Profit (PAT)",
-                    "value": "₹26,233 Cr",
-                    "growth": "+8.9% YoY",
-                    "evidence_id": "ev-infy-fact-pat",
-                    "citation_num": 3,
-                    "excerpt": "Net Profit was Rs 26,233 crore for the fiscal year."
-                }
-            ]
-        elif sym in ("HCLTECH", "HCL"):
-            return [
-                {
-                    "label": "FY26 Services CC Growth",
-                    "value": "+3.8% YoY",
-                    "growth": "Within guided range",
-                    "evidence_id": "ev-hcl-q1-reported",
-                    "citation_num": 1,
-                    "excerpt": "Achieved Q1 Services CC growth was 3.8%."
-                },
-                {
-                    "label": "Q2 Operating EBIT Margin",
-                    "value": "18.6%",
-                    "growth": "Within guided 18.0%–19.0%",
-                    "evidence_id": "ev-hcl-q2-reported",
-                    "citation_num": 2,
-                    "excerpt": "Delivered Q2 EBIT margin at 18.6%."
-                },
-                {
-                    "label": "Q3 CC Growth",
-                    "value": "+3.1% YoY",
-                    "growth": "-40 bps vs guided minimum",
-                    "evidence_id": "ev-hcl-q3-reported",
-                    "citation_num": 3,
-                    "excerpt": "Delivered Q3 CC revenue growth of 3.1% YoY."
-                }
-            ]
-        else:
-            return [
-                {
-                    "label": "Primary Source Status",
-                    "value": "Indexed",
-                    "growth": "Exchange filings synced",
-                    "evidence_id": "ev-preview-101",
-                    "citation_num": 1,
-                    "excerpt": "Exchange regulatory announcements and corporate filings indexed."
-                }
-            ]
+    def get_overview_facts(self, company_id: str) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """SELECT ff.*, json_extract(ff.evidence_ids_json, '$[0]') AS evidence_id
+               FROM financial_facts ff
+               WHERE ff.company_id = ? AND ff.status IN ('reported', 'restated')
+                 AND json_array_length(ff.evidence_ids_json) > 0
+               ORDER BY ff.period_end DESC LIMIT 6""",
+            (company_id,),
+        ).fetchall()
+        return [{
+            "label": row["metric_key"].replace("_", " ").title(),
+            "value": f"{row['original_value']} {row['original_unit']}",
+            "growth": row["fiscal_label"],
+            "evidence_id": row["evidence_id"],
+            "citation_num": index + 1,
+            "excerpt": f"Reported {row['metric_key'].replace('_', ' ')} for {row['fiscal_label']}.",
+        } for index, row in enumerate(rows)]
 
     def build_report(self, query: str, as_of: Optional[str] = None) -> Dict[str, Any]:
         resolved = self.resolver.resolve(query)
         if not resolved or resolved.get("status") != "resolved":
-            return {
-                "error": "COMPANY_NOT_FOUND",
-                "message": f"No listed company matched query '{query}'. Please specify an active NSE symbol or ISIN."
-            }
+            return {"error": "COMPANY_NOT_FOUND", "message": f"No listed company matched query '{query}'."}
 
         match = resolved["company"]
         company_id = match["id"]
-        symbol = match.get("matched_symbol") or match.get("symbol") or "INFY"
-        as_of_date = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-        ledger = self.get_guidance_ledger(symbol)
-        overview_facts = self.get_overview_facts(symbol, company_id)
-
-        # Retrieve indexed primary documents for this company
+        symbol = match.get("matched_symbol") or match.get("symbol") or query.upper()
         docs = self.repo.list_source_documents_for_company(company_id)
-        if not docs:
-            # Return list of primary source files known in repository
-            rows = self.conn.execute("""
-                SELECT id, source_type, publisher, source_url, published_at_utc, fiscal_period, page_count
-                FROM source_documents
-                WHERE company_id = ?
-            """, (company_id,)).fetchall()
-            docs = [dict(r) for r in rows]
-
-        limitations = [
-            "BSE exchange filings are unavailable due to upstream Cloudflare anti-bot verification (HTTP 403); NSE is the primary exchange filing feed.",
-            "Full-year forward targets remain classified as 'not_due' until release of audited annual financial statements.",
-            "All operating margin comparisons are evaluated as percentage point deltas (pp_delta) per deterministic financial rules.",
-            "Analyst questions, speculation, and retrospective justifications are strictly excluded from management guidance ledgers."
-        ]
+        facts = self.get_overview_facts(company_id)
+        ledger = self.get_guidance_ledger(symbol)
+        limitations = []
+        if not facts:
+            limitations.append("No page-level financial facts have been verified and indexed for this company yet.")
+        if not ledger:
+            limitations.append("No management guidance row is shown because FINN has no statement-and-outcome pair with inspectable evidence.")
+        limitations.extend([
+            "Linked sources open on the issuer's official investor-relations site; page-level claims appear only after document parsing and verification.",
+            "BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+        ])
 
         return {
-            "status": "ready",
+            "status": "ready" if docs else "source_gap",
             "company": {
-                "id": match["id"],
-                "symbol": symbol,
-                "legal_name": match["legal_name"],
-                "isin": match["isin"],
-                "sector": match["sector"],
-                "verified_ir_domains": match.get("verified_ir_domains", [])
+                "id": match["id"], "symbol": symbol, "legal_name": match["legal_name"],
+                "isin": match["isin"], "sector": match["sector"],
+                "verified_ir_domains": match.get("verified_ir_domains", []),
             },
-            "as_of_date": as_of_date,
+            "as_of_date": as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "stages": [
-                {"stage": "finding_reports", "label": "Finding reports", "status": "completed"},
-                {"stage": "reading_sources", "label": "Reading sources", "status": "completed"},
-                {"stage": "checking_figures", "label": "Checking figures", "status": "completed"},
-                {"stage": "preparing_analysis", "label": "Preparing analysis", "status": "completed"}
+                {"stage": "finding_reports", "label": "Primary sources located", "status": "completed" if docs else "gap"},
+                {"stage": "reading_sources", "label": "Page evidence indexed", "status": "completed" if facts else "pending"},
+                {"stage": "checking_figures", "label": "Figures verified", "status": "completed" if facts else "pending"},
+                {"stage": "preparing_analysis", "label": "Evidence-safe report", "status": "completed"},
             ],
-            "overview_facts": overview_facts,
-            "guidance_ledger": [row.model_dump() for row in ledger],
-            "source_coverage": [
-                {
-                    "document_id": d.get("id") or d.get("doc_id"),
-                    "title": f"{match['legal_name']} {d.get('source_type', '').replace('_', ' ').title()}",
-                    "source_type": d.get("source_type"),
-                    "publisher": d.get("publisher", "NSE/IR"),
-                    "published_at_utc": d.get("published_at_utc"),
-                    "fiscal_period": d.get("fiscal_period"),
-                    "page_count": d.get("page_count", 1),
-                    "source_url": d.get("source_url")
-                }
-                for d in docs
-            ],
-            "limitations": limitations
+            "overview_facts": facts,
+            "guidance_ledger": ledger,
+            "source_coverage": [{
+                "document_id": d.get("id"),
+                "title": f"{match['legal_name']} · {d.get('source_type', '').replace('_', ' ').title()}",
+                "source_type": d.get("source_type"), "publisher": d.get("publisher"),
+                "published_at_utc": d.get("published_at_utc"), "fiscal_period": d.get("fiscal_period"),
+                "page_count": d.get("page_count", 0), "source_url": d.get("source_url"),
+                "status": d.get("status"),
+            } for d in docs],
+            "limitations": limitations,
         }
 
     def answer_bounded_question(self, query: str, question: str) -> Dict[str, Any]:
         resolved = self.resolver.resolve(query)
         if not resolved or resolved.get("status") != "resolved":
-            return {
-                "error": "COMPANY_NOT_FOUND",
-                "message": f"Company '{query}' could not be resolved."
-            }
-
-        match = resolved["company"]
-        company_id = match["id"]
-        q_lower = question.lower()
-        symbol = match.get("matched_symbol") or match.get("symbol") or "INFY"
-
-        # 1. First, search FTS5 indexed chunks for the company
+            return {"error": "COMPANY_NOT_FOUND", "message": f"Company '{query}' could not be resolved."}
+        company_id = resolved["company"]["id"]
         from finn.retrieval.indexer import FTSIndexer
-        indexer = FTSIndexer(self.conn)
-        hits = indexer.search_chunks(company_id=company_id, query=question, limit=3)
-
-        if hits:
-            top_hit = hits[0]
-            clean_text = top_hit["text_content"].strip()
-            # Find the sentence matching question keywords
-            sentences = [s.strip() for s in clean_text.split(".") if len(s.strip()) > 10]
-            q_words = [w.lower() for w in question.lower().split() if len(w) > 3]
-            matching_sentences = [s for s in sentences if any(w in s.lower() for w in q_words)]
-            summary_sentence = matching_sentences[0] if matching_sentences else (sentences[0] if sentences else clean_text[:180])
-
-            return {
-                "question": question,
-                "answer": f"Based on primary filings: {summary_sentence}.",
-                "evidence_citations": [
-                    {
-                        "citation_num": 1,
-                        "evidence_id": f"chunk-{top_hit['chunk_id'][:8]}",
-                        "label": f"Page {top_hit['page_start']} ({top_hit['section']})"
-                    }
-                ],
-                "limitation": f"Grounded directly in indexed {symbol} filing chunk (Page {top_hit['page_start']})."
-            }
-
-        # 2. Known verified guidance and structured demo cases
-        if "guidance" in q_lower or "changed" in q_lower or "revision" in q_lower:
-            if symbol == "INFY":
+        hits = FTSIndexer(self.conn).search_chunks(company_id=company_id, query=question, limit=3)
+        for hit in hits:
+            evidence = self.conn.execute(
+                """SELECT es.id, es.excerpt FROM evidence_spans es
+                   JOIN source_pages sp ON sp.id = es.page_id
+                   WHERE sp.document_id = ? AND sp.pdf_page_1based BETWEEN ? AND ?
+                   ORDER BY es.start_offset LIMIT 1""",
+                (hit["document_id"], hit["page_start"], hit["page_end"]),
+            ).fetchone()
+            if evidence:
                 return {
-                    "question": question,
-                    "answer": "Management revised constant-currency revenue guidance twice during FY25: raising it from 1.0%–3.0% initially (Apr 2024) to 3.0%–4.0% in Q1 (Jul 2024), narrowing to 3.75%–4.50% in Q2 (Oct 2024), and finally raising to 4.5%–5.0% in Q3 (Jan 2025). Operating margin guidance was maintained steadily at 20.0%–22.0% throughout.",
-                    "evidence_citations": [
-                        {"citation_num": 1, "evidence_id": "ev-preview-101", "label": "Q4 FY24 Transcript p.4"},
-                        {"citation_num": 2, "evidence_id": "ev-preview-104", "label": "Q1 FY25 Transcript p.3"},
-                        {"citation_num": 3, "evidence_id": "ev-preview-105", "label": "Q2 FY25 Transcript p.4"}
-                    ],
-                    "limitation": "Final full-year audited actuals pending April 2025 board results release."
+                    "question": question, "answer": evidence["excerpt"],
+                    "evidence_citations": [{"citation_num": 1, "evidence_id": evidence["id"], "label": f"Primary filing, page {hit['page_start']}"}],
+                    "limitation": "Answer is limited to the directly indexed excerpt; open the citation for context.",
                 }
-            elif symbol == "HCLTECH":
+            # A parsed primary-source page is itself inspectable evidence. Create
+            # a stable span for the best matching sentence instead of returning a
+            # made-up chunk citation that the evidence endpoint cannot resolve.
+            page = self.conn.execute(
+                """SELECT id, text_content FROM source_pages
+                   WHERE document_id = ? AND pdf_page_1based = ?""",
+                (hit["document_id"], hit["page_start"]),
+            ).fetchone()
+            if page:
+                sentences = [part.strip() for part in page["text_content"].split(".") if part.strip()]
+                query_words = [word.lower() for word in question.split() if len(word) > 3]
+                excerpt = next((sentence for sentence in sentences if any(word in sentence.lower() for word in query_words)), sentences[0] if sentences else page["text_content"][:500])
+                start_offset = max(0, page["text_content"].find(excerpt))
+                evidence_id = f"ev-{hit['chunk_id']}"
+                self.conn.execute(
+                    """INSERT OR REPLACE INTO evidence_spans
+                       (id, page_id, start_offset, end_offset, excerpt, bbox_json, verification_state)
+                       VALUES (?, ?, ?, ?, ?, NULL, 'verified')""",
+                    (evidence_id, page["id"], start_offset, start_offset + len(excerpt), excerpt),
+                )
+                self.conn.commit()
                 return {
-                    "question": question,
-                    "answer": "HCL Technologies maintained its services constant currency growth guidance between 3.0% and 5.0% for the first half, while EBIT operating margin guided at 18.0%–19.0% was met in Q2 (18.6%). Full year guidance narrowed in Jan 2026 to 3.0%–4.5%.",
-                    "evidence_citations": [
-                        {"citation_num": 1, "evidence_id": "ev-hcl-q1-stated", "label": "Q1 Results Statement"},
-                        {"citation_num": 2, "evidence_id": "ev-hcl-q2-stated", "label": "Q2 Results Statement"}
-                    ],
-                    "limitation": "Audited full year numbers are scheduled for Q4 FY26 close."
+                    "question": question, "answer": excerpt,
+                    "evidence_citations": [{"citation_num": 1, "evidence_id": evidence_id, "label": f"Primary filing, Page {hit['page_start']}"}],
+                    "limitation": "Answer is limited to the directly indexed excerpt; open the citation for context.",
                 }
-        elif "cash" in q_lower or "profit" in q_lower:
-            if symbol == "INFY":
-                return {
-                    "question": question,
-                    "answer": "Operating cash flow tracked net profit closely across reporting quarters, with free cash flow conversion exceeding 85% of operating profit, supported by disciplined days sales outstanding (DSO) management.",
-                    "evidence_citations": [
-                        {"citation_num": 1, "evidence_id": "ev-infy-fact-pat", "label": "FY24 Annual Report p.14"}
-                    ],
-                    "limitation": "Quarterly cash flow statements in interim unaudited filings report condensed cash flow summaries only."
-                }
-        elif "challenge" in q_lower or "risk" in q_lower or "growth" in q_lower:
-            if symbol == "INFY":
-                return {
-                    "question": question,
-                    "answer": "Management highlighted discretionary spending softness in communications, retail, and manufacturing client verticals, balanced by robust cost-optimization and generative AI mega-deal signings.",
-                    "evidence_citations": [
-                        {"citation_num": 1, "evidence_id": "ev-preview-101", "label": "Q4 FY24 Earnings Call p.4"}
-                    ],
-                    "limitation": "Macroeconomic headwinds discussed in management commentary represent qualitative forward-looking perspectives."
-                }
-
-        # 3. Fallback bounded response: never invent answers when primary evidence is missing
         return {
             "question": question,
-            "answer": "The available primary filing records establish foundational financial facts, but do not contain explicit commentary directly answering this inquiry without speculative extrapolation.",
+            "answer": "FINN cannot answer this from the currently indexed primary-source evidence.",
             "evidence_citations": [],
-            "limitation": "Primary-source policy strictly prohibits ungrounded narrative synthesis when direct excerpts are missing."
+            "limitation": "A source link may be available, but no verified page excerpt directly answers the question.",
         }

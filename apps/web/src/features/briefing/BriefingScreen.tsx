@@ -1,368 +1,102 @@
-import { useState, useEffect } from "react";
-import EvidenceDrawer from "../../components/evidence/EvidenceDrawer";
+import { useEffect, useMemo, useState } from "react";
 
-interface BriefingEvent {
-  id: string;
-  company_id: string;
-  company_name: string;
-  symbol: string;
-  event_date: string;
-  kind: string;
-  headline: string;
-  implication: string;
-  tier: "needs_attention" | "worth_a_look" | "routine";
-  score: number;
-  reasons: string[];
-  filings_count: number;
-  attachment_url?: string;
-  created_at_utc: string;
-}
+type Preset = "24h" | "7d" | "custom";
+interface BriefingEvent { id: string; company_name: string; symbol: string; event_date: string; kind: string; headline: string; implication: string; tier: string; filings_count: number; attachment_url?: string; }
+interface BriefingData { tiers: { needs_attention: BriefingEvent[]; worth_a_look: BriefingEvent[]; routine: BriefingEvent[] }; summary: { needs_attention_count: number; worth_a_look_count: number; routine_count: number; total_events: number; total_source_filings: number }; }
+interface Meta { is_replay?: boolean; last_updated_utc?: string; requested_window?: { start_utc: string; end_utc: string }; is_partial?: boolean; }
 
-interface BriefingData {
-  tiers: {
-    needs_attention: BriefingEvent[];
-    worth_a_look: BriefingEvent[];
-    routine: BriefingEvent[];
-  };
-  summary: {
-    needs_attention_count: number;
-    worth_a_look_count: number;
-    routine_count: number;
-    total_events: number;
-    total_source_filings: number;
-  };
-}
+const localDate = (date: Date) => {
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 10);
+};
 
 export default function BriefingScreen() {
-  const [windowPreset, setWindowPreset] = useState<"24h" | "7d" | "custom">("24h");
+  const today = useMemo(() => localDate(new Date()), []);
+  const weekAgo = useMemo(() => localDate(new Date(Date.now() - 6 * 86_400_000)), []);
+  const [preset, setPreset] = useState<Preset>("24h");
+  const [customStart, setCustomStart] = useState(weekAgo);
+  const [customEnd, setCustomEnd] = useState(today);
   const [data, setData] = useState<BriefingData | null>(null);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<Meta | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
   const [expandRoutine, setExpandRoutine] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchBriefing = (preset: "24h" | "7d" | "custom") => {
-    setLoading(true);
-    setError(null);
-
+  const getWindow = (selected: Preset) => {
     const now = new Date();
-    const end = now.toISOString();
-    let start = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
-
-    if (preset === "7d") {
-      start = new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString();
-    } else if (preset === "custom") {
-      // 30 days default for custom test
-      start = new Date(now.getTime() - 30 * 24 * 3600 * 1000).toISOString();
-    }
-
-    fetch(`/api/v1/briefing?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Briefing request failed: ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        setData(json.data);
-        setMeta(json.meta);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    if (selected === "24h") return { start: new Date(now.getTime() - 86_400_000).toISOString(), end: now.toISOString(), startDate: localDate(new Date(now.getTime() - 86_400_000)), endDate: localDate(now) };
+    if (selected === "7d") return { start: `${weekAgo}T00:00:00+05:30`, end: `${today}T23:59:59+05:30`, startDate: weekAgo, endDate: today };
+    return { start: `${customStart}T00:00:00+05:30`, end: `${customEnd}T23:59:59+05:30`, startDate: customStart, endDate: customEnd };
   };
 
-  useEffect(() => {
-    fetchBriefing(windowPreset);
-  }, [windowPreset]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
+  const loadBriefing = async (selected: Preset, sync = false) => {
+    const window = getWindow(selected);
+    if (window.startDate > window.endDate) { setError("Start date must be on or before end date."); return; }
+    setError(null);
+    setLoading(true);
     try {
-      const res = await fetch("/api/v1/refresh", { method: "POST" });
-      if (res.status === 429) {
-        alert("Refresh rate limit exceeded. Please wait a few seconds before refreshing again.");
-      } else {
-        fetchBriefing(windowPreset);
+      if (sync) {
+        setSyncing(true);
+        const syncResponse = await fetch(`/api/v1/refresh?start_date=${window.startDate}&end_date=${window.endDate}`, { method: "POST" });
+        if (!syncResponse.ok && syncResponse.status !== 429) {
+          const detail = await syncResponse.json().catch(() => ({}));
+          throw new Error(detail.detail || `Exchange sync failed (${syncResponse.status})`);
+        }
       }
-    } catch {
-      // Ignore
-    } finally {
-      setRefreshing(false);
-    }
+      const response = await fetch(`/api/v1/briefing?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`);
+      if (!response.ok) throw new Error(`Briefing request failed (${response.status})`);
+      const json = await response.json();
+      setData(json.data); setMeta(json.meta);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load this briefing window.");
+    } finally { setLoading(false); setSyncing(false); }
   };
 
-  const attentionEvents = data?.tiers.needs_attention || [];
-  const lookEvents = data?.tiers.worth_a_look || [];
-  const routineEvents = data?.tiers.routine || [];
+  useEffect(() => { loadBriefing("24h"); }, []);
+  const choosePreset = (next: Preset) => { setPreset(next); if (next !== "custom") loadBriefing(next, true); };
   const summary = data?.summary;
 
-  return (
-    <div className="briefing-screen">
-      {/* Historical Replay Banner if in replay mode */}
-      {meta?.is_replay && (
-        <div style={{
-          background: "#E8F0FE",
-          border: "1px solid #C2E7FF",
-          padding: "8px 12px",
-          borderRadius: "var(--radius-control)",
-          fontSize: "0.8125rem",
-          color: "#001D35",
-          marginBottom: "var(--space-3)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}>
-          <span><strong>Historical Replay:</strong> As of {meta.last_updated_utc ? meta.last_updated_utc.substring(0, 10) : "2024-10-18"} (Q2 FY25 Season). External sync disabled.</span>
-          <span className="badge" style={{ background: "#004A77", color: "#fff", fontWeight: 700 }}>REPLAY CLOCK</span>
-        </div>
-      )}
-
-      {/* Header & Controls */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--space-3)", flexWrap: "wrap", gap: "8px" }}>
-        <div>
-          <h1 style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--ink)" }}>Portfolio Briefing</h1>
-          <p style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>
-            18 monitored companies &bull; Mode: <strong>{meta?.is_replay ? "Historical Replay" : "Live / IST"}</strong>
-          </p>
-        </div>
-
-        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-          {/* Window Presets */}
-          <div style={{ display: "flex", gap: "2px", background: "var(--surface-muted)", padding: "2px", borderRadius: "var(--radius-control)" }}>
-            {(["24h", "7d", "custom"] as const).map((preset) => (
-              <button
-                key={preset}
-                onClick={() => setWindowPreset(preset)}
-                style={{
-                  border: "none",
-                  background: windowPreset === preset ? "var(--surface)" : "transparent",
-                  color: windowPreset === preset ? "var(--ink)" : "var(--muted)",
-                  fontWeight: windowPreset === preset ? 600 : 400,
-                  fontSize: "0.75rem",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                {preset === "24h" ? "Last 24h" : preset === "7d" ? "7 Days" : "Custom"}
-              </button>
-            ))}
+  const EventGroup = ({ title, events, tone }: { title: string; events: BriefingEvent[]; tone: "attention" | "look" | "routine" }) => (
+    <section className="panel">
+      <div className="panel-header"><span className="panel-title">{title}</span><span className={`badge badge-${tone === "attention" ? "attention" : tone === "look" ? "worth-a-look" : "routine"}`}>{events.length}</span></div>
+      {events.map(event => (
+        <article className="event-card" key={event.id}>
+          <div className="event-meta"><strong>{event.symbol} · {event.company_name}</strong><span>{event.event_date}</span></div>
+          <h3>{event.headline}</h3><p>{event.implication}</p>
+          <div className="event-actions"><span className={`badge badge-${tone === "attention" ? "attention" : tone === "look" ? "worth-a-look" : "routine"}`}>{event.kind.replaceAll("_", " ")}</span>
+            {event.attachment_url ? <a className="source-link" href={event.attachment_url} target="_blank" rel="noreferrer">Open NSE filing ↗</a> : <span className="badge badge-routine">Source unavailable</span>}
           </div>
-
-          {/* Refresh Action */}
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--line)",
-              padding: "4px 10px",
-              borderRadius: "var(--radius-control)",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              cursor: refreshing ? "not-allowed" : "pointer",
-              color: "var(--ink)",
-            }}
-          >
-            {refreshing ? "Polling..." : "Refresh"}
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Counts Bar (reconciling records) */}
-      {summary && (
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          background: "var(--surface)",
-          padding: "8px 12px",
-          borderRadius: "var(--radius-panel)",
-          border: "1px solid var(--line)",
-          marginBottom: "var(--space-4)",
-          fontSize: "0.8125rem",
-          color: "var(--muted)"
-        }}>
-          <span>Total Events: <strong>{summary.total_events}</strong></span>
-          <span>Source Filings: <strong>{summary.total_source_filings}</strong></span>
-          <span>Interval: <strong>{windowPreset === "24h" ? "Past 24 Hours" : windowPreset === "7d" ? "Past 7 Days" : "Custom Window"}</strong></span>
-        </div>
-      )}
-
-      {loading && (
-        <div style={{ padding: "var(--space-6) 0", textAlign: "center", color: "var(--muted)" }}>
-          Loading live portfolio events...
-        </div>
-      )}
-
-      {error && (
-        <div style={{ padding: "var(--space-4)", background: "#FDF2F2", border: "1px solid #F8D7DA", borderRadius: "var(--radius-panel)", color: "var(--negative)", marginBottom: "var(--space-4)" }}>
-          Failed to load briefing: {error}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!loading && !error && attentionEvents.length === 0 && lookEvents.length === 0 && routineEvents.length === 0 && (
-        <div className="panel" style={{ textAlign: "center", padding: "var(--space-6) var(--space-4)" }}>
-          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "4px" }}>No Material Events in Selected Window</h3>
-          <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "var(--space-3)" }}>
-            No corporate filings or price/volume threshold breaks occurred during this period.
-          </p>
-          <button
-            onClick={() => setWindowPreset("7d")}
-            style={{
-              background: "var(--accent-soft)",
-              color: "var(--accent)",
-              border: "none",
-              padding: "6px 14px",
-              borderRadius: "var(--radius-control)",
-              fontSize: "0.8125rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            Expand to 7 Days
-          </button>
-        </div>
-      )}
-
-      {/* Tier 1: Needs Attention */}
-      {attentionEvents.length > 0 && (
-        <div className="panel" style={{ borderLeft: "4px solid var(--negative)" }}>
-          <div className="panel-header">
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-              <span className="panel-title">Needs Attention</span>
-              <span className="badge badge-attention">{attentionEvents.length}</span>
-            </div>
-            <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>Prioritized by severity</span>
-          </div>
-
-          {attentionEvents.map((evt) => (
-            <div key={evt.id} style={{ paddingBottom: "var(--space-3)", borderBottom: "1px solid var(--line)", marginBottom: "var(--space-3)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", color: "var(--muted)", marginBottom: "4px" }}>
-                <strong>{evt.company_name} ({evt.symbol})</strong>
-                <span>{evt.event_date}</span>
-              </div>
-              <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
-                {evt.headline}
-              </h3>
-              <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "8px" }}>
-                {evt.implication}
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span className="badge badge-attention" style={{ fontSize: "0.6875rem" }}>{evt.kind.toUpperCase()}</span>
-                <button
-                  onClick={() => setSelectedEvidenceId("ev-preview-101")}
-                  style={{
-                    background: "var(--accent-soft)",
-                    color: "var(--accent)",
-                    border: "none",
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-control)",
-                    fontSize: "0.8125rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    minHeight: "36px",
-                  }}
-                >
-                  Inspect Source &rarr;
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tier 2: Worth a Look */}
-      {lookEvents.length > 0 && (
-        <div className="panel" style={{ borderLeft: "4px solid var(--warning)" }}>
-          <div className="panel-header">
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-              <span className="panel-title">Worth a Look</span>
-              <span className="badge badge-worth-a-look">{lookEvents.length}</span>
-            </div>
-          </div>
-
-          {lookEvents.map((evt) => (
-            <div key={evt.id} style={{ paddingBottom: "var(--space-3)", borderBottom: "1px solid var(--line)", marginBottom: "var(--space-3)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", color: "var(--muted)", marginBottom: "4px" }}>
-                <strong>{evt.company_name} ({evt.symbol})</strong>
-                <span>{evt.event_date}</span>
-              </div>
-              <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
-                {evt.headline}
-              </h3>
-              <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginBottom: "8px" }}>
-                {evt.implication}
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span className="badge badge-worth-a-look" style={{ fontSize: "0.6875rem" }}>{evt.kind.toUpperCase()}</span>
-                <button
-                  onClick={() => setSelectedEvidenceId("ev-preview-101")}
-                  style={{
-                    background: "none",
-                    color: "var(--accent)",
-                    border: "1px solid var(--line)",
-                    padding: "4px 10px",
-                    borderRadius: "var(--radius-control)",
-                    fontSize: "0.75rem",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                  }}
-                >
-                  View Filing
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tier 3: Routine Filings */}
-      {routineEvents.length > 0 && (
-        <div className="panel">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <span className="panel-title" style={{ fontSize: "0.9375rem" }}>Routine Disclosures</span>
-              <span className="badge badge-routine" style={{ marginLeft: "8px" }}>{routineEvents.length}</span>
-            </div>
-            <button
-              onClick={() => setExpandRoutine(!expandRoutine)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--accent)",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                padding: "4px 8px",
-              }}
-            >
-              {expandRoutine ? "Collapse" : "Expand All"}
-            </button>
-          </div>
-
-          {expandRoutine && (
-            <div style={{ marginTop: "var(--space-3)", borderTop: "1px solid var(--line)", paddingTop: "var(--space-3)" }}>
-              {routineEvents.map((evt) => (
-                <div key={evt.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
-                  <span>{evt.company_name} &mdash; {evt.headline}</span>
-                  <span style={{ color: "var(--muted)" }}>{evt.event_date}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {selectedEvidenceId && (
-        <EvidenceDrawer
-          evidenceId={selectedEvidenceId}
-          onClose={() => setSelectedEvidenceId(null)}
-        />
-      )}
-    </div>
+        </article>
+      ))}
+    </section>
   );
+
+  return <div className="briefing-screen">
+    <header className="screen-heading"><div className="screen-kicker">Your portfolio</div><h1 className="screen-title">What changed?</h1><p className="screen-subtitle">A source-linked view of material exchange filings from the companies you monitor.</p></header>
+    {meta?.is_replay && <div className="notice"><strong>Historical replay</strong> · clock fixed at {meta.last_updated_utc?.slice(0, 10)}.</div>}
+    {meta?.is_partial && <div className="notice">NSE returned partial coverage. Results below show the records received; retry refresh for complete coverage.</div>}
+
+    <section className="panel">
+      <div className="segmented" aria-label="Briefing period">
+        {(["24h", "7d", "custom"] as Preset[]).map(item => <button key={item} className={preset === item ? "active" : ""} onClick={() => choosePreset(item)}>{item === "24h" ? "Last 24h" : item === "7d" ? "7 days" : "Custom"}</button>)}
+      </div>
+      {preset === "custom" && <div className="custom-window">
+        <div className="field"><label htmlFor="briefing-start">From</label><input id="briefing-start" type="date" value={customStart} max={customEnd} onChange={e => setCustomStart(e.target.value)} /></div>
+        <div className="field"><label htmlFor="briefing-end">To</label><input id="briefing-end" type="date" value={customEnd} min={customStart} max={today} onChange={e => setCustomEnd(e.target.value)} /></div>
+        <button className="button" disabled={syncing} onClick={() => loadBriefing("custom", true)}>{syncing ? "Syncing NSE…" : "Apply window"}</button>
+      </div>}
+      {preset !== "custom" && <button className="button secondary" style={{ width: "100%", marginTop: 12 }} disabled={syncing} onClick={() => loadBriefing(preset, true)}>{syncing ? "Syncing NSE…" : "Refresh this period"}</button>}
+    </section>
+
+    {summary && <div className="summary-strip"><div className="summary-stat"><strong>{summary.total_events}</strong><span>events</span></div><div className="summary-stat"><strong>{summary.total_source_filings}</strong><span>source filings</span></div><div className="summary-stat"><strong>{summary.needs_attention_count}</strong><span>need attention</span></div></div>}
+    {error && <div className="notice error-notice" role="alert">{error}</div>}
+    {loading && <div className="panel empty-state"><p>{syncing ? "Fetching the selected window from NSE…" : "Preparing your briefing…"}</p></div>}
+    {!loading && data && data.tiers.needs_attention.length === 0 && data.tiers.worth_a_look.length === 0 && data.tiers.routine.length === 0 && <div className="panel empty-state"><h3>No filings in this window</h3><p>This is a valid empty result for your current watchlist. Try seven days or choose a custom interval.</p><button className="button" onClick={() => choosePreset("7d")}>Check seven days</button></div>}
+    {!loading && data && <>
+      {data.tiers.needs_attention.length > 0 && <EventGroup title="Needs attention" events={data.tiers.needs_attention} tone="attention" />}
+      {data.tiers.worth_a_look.length > 0 && <EventGroup title="Worth a look" events={data.tiers.worth_a_look} tone="look" />}
+      {data.tiers.routine.length > 0 && <section className="panel"><div className="panel-header"><span className="panel-title">Routine disclosures</span><button className="button secondary" onClick={() => setExpandRoutine(!expandRoutine)}>{expandRoutine ? "Collapse" : `View ${data.tiers.routine.length}`}</button></div>{expandRoutine && <div>{data.tiers.routine.map(event => <article className="event-card" key={event.id}><div className="event-meta"><strong>{event.symbol}</strong><span>{event.event_date}</span></div><h3>{event.headline}</h3>{event.attachment_url && <div className="event-actions"><span /><a className="source-link" href={event.attachment_url} target="_blank" rel="noreferrer">Open filing ↗</a></div>}</article>)}</div>}</section>}
+    </>}
+  </div>;
 }

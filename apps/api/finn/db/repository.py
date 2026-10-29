@@ -4,6 +4,14 @@ from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from finn.db.seed_data import CANDIDATE_COMPANIES
 
+DEFAULT_PORTFOLIO_COMPANY_IDS = [
+    "comp-infy-001", "comp-tcs-002", "comp-hcltech-003", "comp-reliance-004",
+    "comp-hdfcbank-005", "comp-icicibank-006", "comp-hul-007", "comp-itc-008",
+    "comp-lt-009", "comp-sunpharma-010", "comp-drreddy-011", "comp-maruti-012",
+    "comp-titan-013", "comp-ultracem-014", "comp-ntpc-015", "comp-tatasteel-016",
+    "comp-persistent-017", "comp-kaynes-018",
+]
+
 class DataRepository:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
@@ -118,14 +126,13 @@ class DataRepository:
 
     def seed_default_watchlist_for_session(self, session_id: str) -> int:
         self.ensure_session(session_id)
-        rows = self.conn.execute("SELECT id FROM companies LIMIT 18").fetchall()
         count = 0
         now_utc = datetime.now(timezone.utc).isoformat()
-        for r in rows:
+        for company_id in DEFAULT_PORTFOLIO_COMPANY_IDS:
             cursor = self.conn.execute("""
                 INSERT OR IGNORE INTO watchlist_members (session_id, company_id, added_at_utc)
                 VALUES (?, ?, ?)
-            """, (session_id, r["id"], now_utc))
+            """, (session_id, company_id, now_utc))
             if cursor.rowcount > 0:
                 count += 1
         self.conn.commit()

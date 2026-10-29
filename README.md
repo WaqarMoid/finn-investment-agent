@@ -7,7 +7,7 @@ It directly answers three daily investor questions:
 2. **Why does it matter?** (Concise 30-word implication and rule-based materiality classification).
 3. **What supports that?** (Direct links to primary sources via an immutable Evidence Drawer with 1-based PDF page numbers and verbatim excerpts).
 
-The signature research capability is a **Four-Quarter Management Guidance Ledger**, matching stated forward-looking management targets against audited results in deterministic Python code.
+The research desk keeps an official-source catalog and exposes a Management Guidance Ledger only when both a management statement and a comparable outcome have inspectable evidence. Missing extraction remains visibly pending instead of being filled with sample claims.
 
 ---
 
@@ -23,11 +23,12 @@ The signature research capability is a **Four-Quarter Management Guidance Ledger
   - Non-positive prior baselines (losses) handled with descriptive text ("loss narrowed/widened"), not misleading percent growth.
   - Banking sector EBITDA explicitly suppressed with sector caveats.
   - Derived Q4 financial facts cite both operands (`FY - 9M`).
-- **Signature Feature: 4-Quarter Guidance Ledger:**
+- **Evidence-Gated Guidance Ledger:**
   - Extracts forward guidance (metric, bounds, speaker, period) from official earnings call transcripts.
   - Evaluates actual outcomes (*Met*, *Exceeded*, *Missed*, *Not Due*, *Qualitative Supported*).
   - Future full-year targets protected against premature miss verdicts (`not_due`).
-  - Dual-sided evidence inspector displaying verbatim primary source quotes for both sides.
+  - Dual-sided evidence inspector displaying verbatim primary source quotes for both sides when verified page spans exist.
+  - Official investor links remain available while extraction is pending; link metadata is never presented as a verified financial fact.
 - **SSRF-Protected Generic Ingestion & FTS5 Retrieval:**
   - SSRF validator blocking RFC 1918 private ranges, loopback, and cloud metadata endpoints.
   - Generic IR document discovery extracting annual reports and transcripts from official domains.
@@ -120,9 +121,9 @@ Access the application at **`http://localhost:8000`**.
 
 ## 5. Running the Automated Test Suite
 
-### Full Workspace Regression (70 Tests Passing)
+### Full Workspace Regression
 ```bash
-python -m unittest discover -s tests
+python -m pytest -q
 ```
 
 ### Running Test Subsets
@@ -150,7 +151,15 @@ python -m unittest discover -s tests
 | **NSE Announcements** | **Verified Live** | Ingests corporate announcements with attachment URLs via session cookies. |
 | **BSE Announcements** | **Documented Limitation** | Returns HTTP 403 (Cloudflare bot protection). Gracefully logged as a known limitation; NSE is primary filing exchange. |
 | **Yahoo Finance EOD** | **Verified Live** | Daily price/volume bars with split/dividend adjustment history. |
-| **Primary IR Documents** | **Verified Offline/Live** | Extracts verbatim transcripts (e.g. Infosys Q4 FY24 28-page PDF) and tabular results (e.g. HCL Tech). |
+| **Primary IR Documents** | **Source catalog active** | Official issuer links are registered for INFY, HCLTECH, TCS, and RELIANCE. Page facts and guidance appear only after extraction produces inspectable evidence spans. |
+
+## Public mobile deployment
+
+The repository includes a Render Blueprint in `render.yaml`. Open the link below, connect the GitHub repository, and Render will build the Docker image and provide a normal HTTPS `onrender.com` address with no tunnel password or IP prompt:
+
+[Deploy FINN on Render](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)
+
+Render's free web-service filesystem is ephemeral and may spin down after inactivity. FINN recreates its database, official source catalog, and current NSE feed at startup. Use a paid persistent disk or managed database if watchlists must survive service replacement.
 
 ---
 

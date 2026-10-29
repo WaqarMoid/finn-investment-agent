@@ -152,9 +152,9 @@ class TestGeneralizationAndHeldOutEvaluation(unittest.TestCase):
         })
         self.assertEqual(resp_q.status_code, 200)
         q_data = resp_q.json()
-        self.assertIn("do not contain explicit commentary directly answering this inquiry", q_data["answer"])
+        self.assertIn("cannot answer", q_data["answer"])
         self.assertEqual(len(q_data["evidence_citations"]), 0)
-        self.assertIn("strictly prohibits ungrounded narrative synthesis", q_data["limitation"])
+        self.assertIn("no verified page excerpt", q_data["limitation"])
 
 if __name__ == "__main__":
     unittest.main()

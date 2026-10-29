@@ -59,8 +59,8 @@ class TestMobileShell(unittest.TestCase):
             page.goto(self.server_url, wait_until="networkidle")
             
             # Check brand logo and title
-            brand_title = page.locator(".brand-title")
-            self.assertEqual(brand_title.inner_text(), "FINN")
+            brand_title = page.locator(".mobile-brand")
+            self.assertIn("FINN", brand_title.inner_text())
             
             # 2. Check no horizontal overflow at 390px
             scroll_width = page.evaluate("() => document.documentElement.scrollWidth")
@@ -82,20 +82,11 @@ class TestMobileShell(unittest.TestCase):
             research_btn.click()
             page.wait_for_selector(".research-screen")
             self.assertIn("#/research", page.url)
-            self.assertIn("Management Guidance Ledger", page.content())
+            self.assertIn("Follow the evidence", page.content())
 
-            # 5. Open Evidence Drawer
-            inspect_btn = page.locator("button:has-text('Inspect Stated Evidence')").first
-            inspect_btn.click()
-            drawer = page.locator("[role='dialog']")
-            self.assertTrue(drawer.is_visible())
-            self.assertIn("PRIMARY EVIDENCE", drawer.inner_text())
-
-            # Close drawer
-            close_btn = page.locator("button:has-text('Close')")
-            close_btn.click()
-            page.wait_for_timeout(300)
-            self.assertFalse(drawer.is_visible())
+            # 5. Official source metadata is available for the default company
+            page.wait_for_selector("text=Official source library")
+            self.assertGreaterEqual(page.locator("a:has-text('Open official source')").count(), 2)
 
             # 6. Test Direct Deep-Link Reload
             page.goto(f"{self.server_url}/#/research", wait_until="networkidle")

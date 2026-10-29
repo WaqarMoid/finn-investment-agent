@@ -1,0 +1,169 @@
+{
+  "base_url": "http://127.0.0.1:8765",
+  "results": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "initial_text_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n1\nevents\n1\nsource filings\n0\nneed attention\nRoutine disclosures\nView 1",
+      "dimensions": {
+        "scrollWidth": 390,
+        "clientWidth": 390
+      },
+      "window_controls": [
+        {
+          "label": "Last 24h",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n1\nevents\n1\nsource filings\n0\nneed attention\nRoutine disclosures\nView 1"
+        },
+        {
+          "label": "7 days",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n2\nevents\n2\nsource filings\n0\nneed attention\nRoutine disclosures\nView 2"
+        },
+        {
+          "label": "Custom",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nFROM\nTO\nApply window\n2\nevents\n2\nsource filings\n0\nneed attention\nRoutine disclosures\nView 2"
+        }
+      ],
+      "custom_date_inputs": 2,
+      "api_requests": [
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-28T07%3A15%3A49.256Z&end=2026-10-29T07%3A15%3A49.256Z",
+        "GET http://127.0.0.1:8765/api/v1/health/ready",
+        "POST http://127.0.0.1:8765/api/v1/refresh?start_date=2026-10-28&end_date=2026-10-29",
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-28T07%3A15%3A50.560Z&end=2026-10-29T07%3A15%3A50.560Z",
+        "POST http://127.0.0.1:8765/api/v1/refresh?start_date=2026-10-23&end_date=2026-10-29",
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-23T00%3A00%3A00%2B05%3A30&end=2026-10-29T23%3A59%3A59%2B05%3A30",
+        "GET http://127.0.0.1:8765/api/v1/research/INFY",
+        "GET http://127.0.0.1:8765/api/v1/research/INFY",
+        "GET http://127.0.0.1:8765/api/v1/research/HCLTECH",
+        "GET http://127.0.0.1:8765/api/v1/research/TCS",
+        "GET http://127.0.0.1:8765/api/v1/research/RELIANCE",
+        "GET http://127.0.0.1:8765/api/v1/watchlist",
+        "GET http://127.0.0.1:8765/api/v1/notification-rules",
+        "GET http://127.0.0.1:8765/api/v1/alerts"
+      ],
+      "research": {
+        "INFY": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nInfosys Limited\n\nINFY \u00b7 INE009A01021\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nInfosys Investor Relations\nFY26\nInfosys Limited \u00b7 Annual Report Library\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report library\nOpen official source \u2197\nInfosys Investor Relations\nFY27\nInfosys Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed for this company yet.\n\n\u2022 No m"
+        },
+        "HCLTECH": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nHCL Technologies Limited\n\nHCLTECH \u00b7 INE860A01027\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nHCLTech Investor Relations\nFY26\nHCL Technologies Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nHCLTech Investor Relations\nFY27\nHCL Technologies Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed for this compan"
+        },
+        "TCS": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nTata Consultancy Services Limited\n\nTCS \u00b7 INE467B01029\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nTCS Investor Relations\nFY26\nTata Consultancy Services Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nTCS Investor Relations\nFY27\nTata Consultancy Services Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed "
+        },
+        "RELIANCE": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nConglomerate / Energy\nAs of 2026-10-29\nReliance Industries Limited\n\nRELIANCE \u00b7 INE002A01018\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nReliance Industries Investor Relations\nFY26\nReliance Industries Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nReliance Industries Investor Relations\nFY27\nReliance Industries Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been ver"
+        }
+      },
+      "watchlist_excerpt": "Briefing\nResearch\nWatchlist\nF\nFINN\nLive\nWatchlist & Notification Rules\n\nSession-isolated preferences \u2022 Anonymous reviewer session active\n\nNotification Trigger Thresholds\nPrice Move Threshold (%)\nAlert if daily move strictly exceeds this\nVolume Multiple (vs 20D)\nAlert if volume > N \u00d7 20-day mean\nTest on recent data\nSave Alert Rules\nSession Alerts Inbox\n\nNo alerts triggered yet for this session.\n\nMonitored Portfolio Holdings (18 Companies)\nINFY\n\nInfosys Limited \u2022 Information Technology\n\nActive Monitoring\nTCS\n\nTata Consultancy Services Limited \u2022 Information Technology\n\nActive Monitoring\nHCLTECH\n\nHCL Technologies Limited \u2022 Information Technology\n\nActive Monitoring\nRELIANCE\n\nReliance Industries Limited \u2022 Conglomerate / Energy\n\nActive Monitoring\nHDFCBANK\n\nHDFC Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nICICIBANK\n\nICICI Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nHINDUNILVR\n\nHindustan Unilever Limited \u2022 Fast Moving Consumer Goods\n\nActive Monitoring\nITC\n\nITC Limited \u2022 Fast Moving Consumer Goods\n\nActive Monitoring\nLT\n\nLarsen & Toubro Limited \u2022 Capital Goods & Infrastructure\n\nActive Monitoring\nSUNPHARMA\n\nSun Pharmaceutical Industries Limited \u2022 Pharmaceuticals & Healthc",
+      "theme_toggle_count": 1,
+      "console_errors": [],
+      "failed_requests": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "initial_text_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n1\nevents\n1\nsource filings\n0\nneed attention\nRoutine disclosures\nView 1",
+      "dimensions": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      },
+      "window_controls": [
+        {
+          "label": "Last 24h",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n1\nevents\n1\nsource filings\n0\nneed attention\nRoutine disclosures\nView 1"
+        },
+        {
+          "label": "7 days",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nRefresh this period\n2\nevents\n2\nsource filings\n0\nneed attention\nRoutine disclosures\nView 2"
+        },
+        {
+          "label": "Custom",
+          "count": 1,
+          "url": "http://127.0.0.1:8765/",
+          "text_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nYOUR PORTFOLIO\nWhat changed?\n\nA source-linked view of material exchange filings from the companies you monitor.\n\nLast 24h\n7 days\nCustom\nFROM\nTO\nApply window\n2\nevents\n2\nsource filings\n0\nneed attention\nRoutine disclosures\nView 2"
+        }
+      ],
+      "custom_date_inputs": 2,
+      "api_requests": [
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-28T07%3A15%3A59.257Z&end=2026-10-29T07%3A15%3A59.257Z",
+        "GET http://127.0.0.1:8765/api/v1/health/ready",
+        "POST http://127.0.0.1:8765/api/v1/refresh?start_date=2026-10-28&end_date=2026-10-29",
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-28T07%3A16%3A00.495Z&end=2026-10-29T07%3A16%3A00.495Z",
+        "POST http://127.0.0.1:8765/api/v1/refresh?start_date=2026-10-23&end_date=2026-10-29",
+        "GET http://127.0.0.1:8765/api/v1/briefing?start=2026-10-23T00%3A00%3A00%2B05%3A30&end=2026-10-29T23%3A59%3A59%2B05%3A30",
+        "GET http://127.0.0.1:8765/api/v1/research/INFY",
+        "GET http://127.0.0.1:8765/api/v1/research/INFY",
+        "GET http://127.0.0.1:8765/api/v1/research/HCLTECH",
+        "GET http://127.0.0.1:8765/api/v1/research/TCS",
+        "GET http://127.0.0.1:8765/api/v1/research/RELIANCE",
+        "GET http://127.0.0.1:8765/api/v1/watchlist",
+        "GET http://127.0.0.1:8765/api/v1/notification-rules",
+        "GET http://127.0.0.1:8765/api/v1/alerts"
+      ],
+      "research": {
+        "INFY": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nInfosys Limited\n\nINFY \u00b7 INE009A01021\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nInfosys Investor Relations\nFY26\nInfosys Limited \u00b7 Annual Report Library\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report library\nOpen official source \u2197\nInfosys Investor Relations\nFY27\nInfosys Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed for this company yet.\n\n\u2022 No m"
+        },
+        "HCLTECH": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nHCL Technologies Limited\n\nHCLTECH \u00b7 INE860A01027\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nHCLTech Investor Relations\nFY26\nHCL Technologies Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nHCLTech Investor Relations\nFY27\nHCL Technologies Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed for this compan"
+        },
+        "TCS": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nInformation Technology\nAs of 2026-10-29\nTata Consultancy Services Limited\n\nTCS \u00b7 INE467B01029\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nTCS Investor Relations\nFY26\nTata Consultancy Services Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nTCS Investor Relations\nFY27\nTata Consultancy Services Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been verified and indexed "
+        },
+        "RELIANCE": {
+          "has_company": true,
+          "sources_text": "Sources \u00b7 2",
+          "no_guidance": true,
+          "error": "\u2022 BSE automated retrieval is currently unavailable; exchange monitoring uses NSE disclosures.",
+          "body_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nPRIMARY RESEARCH\nFollow the evidence.\n\nOfficial issuer sources first. Claims appear only when FINN can point to an inspectable page excerpt.\n\nCOMPANY, NSE SYMBOL OR ISIN\nResearch\nINFY\nHCLTECH\nTCS\nRELIANCE\nConglomerate / Energy\nAs of 2026-10-29\nReliance Industries Limited\n\nRELIANCE \u00b7 INE002A01018\n\nSources \u00b7 2\nFacts \u00b7 0\nGuidance \u00b7 0\nOfficial source library\nIssuer domains\nReliance Industries Investor Relations\nFY26\nReliance Industries Limited \u00b7 Annual Report\n\nOfficial link registered \u00b7 page extraction pending\n\nannual report\nOpen official source \u2197\nReliance Industries Investor Relations\nFY27\nReliance Industries Limited \u00b7 Quarterly Results Library\n\nOfficial link registered \u00b7 page extraction pending\n\nquarterly results library\nOpen official source \u2197\nAsk the indexed evidence\nFOCUSED QUESTION\nAsk\nCoverage limits\n\n\u2022 No page-level financial facts have been ver"
+        }
+      },
+      "watchlist_excerpt": "F\nFINN\nBriefing\nResearch\nWatchlist\nLive\nWatchlist & Notification Rules\n\nSession-isolated preferences \u2022 Anonymous reviewer session active\n\nNotification Trigger Thresholds\nPrice Move Threshold (%)\nAlert if daily move strictly exceeds this\nVolume Multiple (vs 20D)\nAlert if volume > N \u00d7 20-day mean\nTest on recent data\nSave Alert Rules\nSession Alerts Inbox\n\nNo alerts triggered yet for this session.\n\nMonitored Portfolio Holdings (18 Companies)\nINFY\n\nInfosys Limited \u2022 Information Technology\n\nActive Monitoring\nTCS\n\nTata Consultancy Services Limited \u2022 Information Technology\n\nActive Monitoring\nHCLTECH\n\nHCL Technologies Limited \u2022 Information Technology\n\nActive Monitoring\nRELIANCE\n\nReliance Industries Limited \u2022 Conglomerate / Energy\n\nActive Monitoring\nHDFCBANK\n\nHDFC Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nICICIBANK\n\nICICI Bank Limited \u2022 Banking & Financials\n\nActive Monitoring\nHINDUNILVR\n\nHindustan Unilever Limited \u2022 Fast Moving Consumer Goods\n\nActive Monitoring\nITC\n\nITC Limited \u2022 Fast Moving Consumer Goods\n\nActive Monitoring\nLT\n\nLarsen & Toubro Limited \u2022 Capital Goods & Infrastructure\n\nActive Monitoring\nSUNPHARMA\n\nSun Pharmaceutical Industries Limited \u2022 Pharmaceuticals & Healthc",
+      "theme_toggle_count": 1,
+      "console_errors": [],
+      "failed_requests": []
+    }
+  ]
+}

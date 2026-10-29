@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: finn-investment-agent
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: FINN_MODE
+        value: live
+      - key: FINN_EXCHANGE_SOURCE
+        value: nse
+      - key: DATA_DIR
+        value: /tmp/finn-data
+      - key: DATABASE_PATH
+        value: /tmp/finn-data/finn.db
+      - key: PYTHONUNBUFFERED
+        value: "1"
