@@ -1,0 +1,39 @@
+name: Deploy preflight
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  container-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build --tag finn:ci .
+
+      - name: Start production image
+        run: >-
+          docker run --detach --name finn-ci --publish 10000:10000
+          --env FINN_MODE=live --env FINN_STARTUP_SYNC=false finn:ci
+
+      - name: Wait for liveness and readiness
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:10000/api/v1/health/live >/dev/null \
+              && curl --fail --silent http://127.0.0.1:10000/api/v1/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs finn-ci
+          exit 1
+
+      - name: Print container logs on failure
+        if: failure()
+        run: docker logs finn-ci || true
