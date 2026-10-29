@@ -47,8 +47,11 @@ class TestBriefingVerticalSlice(unittest.TestCase):
             page.get_by_role("button", name="Watchlist").click()
             page.wait_for_selector(".watchlist-screen")
             page.locator("#price-input").fill("6.5")
-            page.get_by_role("button", name="Save Alert Rules").click()
-            page.wait_for_selector("text=Rules saved for this session!")
+            page.get_by_role("button", name="Save rules").click()
+            page.wait_for_selector("text=Rules saved")
+            page.get_by_text("TCS", exact=True).locator("xpath=../../..").get_by_role("button", name="Research").click()
+            page.wait_for_selector("text=Tata Consultancy Services Limited")
+            self.assertIn("symbol=TCS", page.url)
             browser.close()
 
 if __name__ == "__main__": unittest.main()

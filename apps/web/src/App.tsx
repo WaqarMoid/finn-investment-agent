@@ -16,7 +16,7 @@ const icons = {
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<TabDestination>(() => {
-    const hash = window.location.hash.replace("#/", "").replace("#", "");
+    const hash = window.location.hash.replace("#/", "").replace("#", "").split("?")[0];
     return hash === "research" || hash === "watchlist" ? hash : "briefing";
   });
   const [apiReady, setApiReady] = useState<boolean | null>(null);
@@ -33,7 +33,7 @@ export default function App() {
 
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace("#/", "").replace("#", "");
+      const hash = window.location.hash.replace("#/", "").replace("#", "").split("?")[0];
       if (["briefing", "research", "watchlist"].includes(hash)) setCurrentTab(hash as TabDestination);
     };
     window.addEventListener("hashchange", handleHash);

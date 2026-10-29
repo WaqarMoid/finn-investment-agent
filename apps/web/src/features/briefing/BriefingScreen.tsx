@@ -62,7 +62,7 @@ export default function BriefingScreen() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandRoutine, setExpandRoutine] = useState(false);
+  const [expandRoutine, setExpandRoutine] = useState(true);
 
   const getWindow = (selected: Preset) => {
     const now = new Date();
@@ -305,6 +305,7 @@ export default function BriefingScreen() {
                         <span>{event.event_date}</span>
                       </div>
                       <h3>{event.headline}</h3>
+                      <p>{event.implication}</p>
                       {event.attachment_url && (
                         <div className="event-actions">
                           <span />

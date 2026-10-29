@@ -14,6 +14,7 @@ Sources: [Emil design engineering](https://github.com/emilkowalski/skills/blob/m
 - Coforge and Dixon previously showed zero guidance. Exact statements from issuer-hosted Q4 FY26 earnings-call PDFs are indexed with physical PDF page numbers (Coforge p. 8; Dixon p. 14). Guidance remains **not due** until a comparable reported outcome is verified. Astral now has an official annual-report source link but no claimed guidance or financial figures.
 - The research composer now precedes the source/fact/guidance tabs. Example questions are optional; users can enter any focused question. The briefing title is “Portfolio pulse.” Legacy Google Fonts loading was removed; the locally bundled Inter font remains.
 - The UI shows actual coverage counts rather than a decorative four-stage completion bar. The mobile navigation no longer floats over the page, and buttons, hierarchy, and issuer marks were simplified.
+- Briefing now opens routine items by default and shows the underlying filing summary; previously a nonzero event count could lead to a screen with no visible event. Watchlist-to-Research links now carry the selected ticker and survive reload. Alert labels and Watchlist copy were simplified.
 
 ## Verified source material
 
@@ -26,6 +27,7 @@ Sources: [Emil design engineering](https://github.com/emilkowalski/skills/blob/m
 - `python -m unittest discover -s tests`: 72 passing, including mobile Playwright tests and issuer evidence/citation checks.
 - `npm run build` in `apps/web`: successful TypeScript and production Vite build.
 - Local Playwright visual check: 320, 390, 768, and 1440 px, light and dark; zero horizontal overflow. On 390 px, custom Coforge cash-conversion question returned an excerpt, its citation opened the evidence drawer, and the PDF page was 8. Final screenshots are in `docs/ui-review`.
+- The 390 px Watchlist-to-Research browser flow opens TCS rather than resetting to INFY. Briefing and Watchlist were also screenshot-reviewed in light and dark.
 
 ## Remaining scope and truthful limitations
 

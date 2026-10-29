@@ -135,18 +135,17 @@ export default function WatchlistScreen() {
   return (
     <div className="watchlist-screen">
       <header className="screen-heading">
-        <div className="screen-kicker">Portfolio & Trigger Rules</div>
-        <h1 className="screen-title">Watchlist & Alerts</h1>
+        <div className="screen-kicker">Your market view</div>
+        <h1 className="screen-title">Watchlist</h1>
         <p className="screen-subtitle">
-          Session-isolated portfolio preferences and automated thresholds for material disclosures, volume spikes, and unusual price swings.
+          Follow company filings and set alerts for unusual price and volume moves.
         </p>
       </header>
 
       {/* Rules Configuration Panel */}
       <section className="panel">
         <div className="panel-header">
-          <span className="panel-title">Trigger Thresholds</span>
-          <span className="badge badge-routine">Session Scoped</span>
+          <span className="panel-title">Alert thresholds</span>
         </div>
 
         <form onSubmit={handleSave}>
@@ -163,7 +162,7 @@ export default function WatchlistScreen() {
                 onChange={(e) => setPriceThreshold(e.target.value)}
               />
               <span style={{ fontSize: 11, color: "var(--muted)", paddingLeft: 4 }}>
-                Alert if daily move strictly exceeds ±X%
+                Alert when a daily move exceeds this percentage.
               </span>
             </div>
 
@@ -179,7 +178,7 @@ export default function WatchlistScreen() {
                 onChange={(e) => setVolumeMultiple(e.target.value)}
               />
               <span style={{ fontSize: 11, color: "var(--muted)", paddingLeft: 4 }}>
-                Alert if volume &gt; N × 20-day baseline
+                Compare today’s volume with its 20-day average.
               </span>
             </div>
           </div>
@@ -197,11 +196,11 @@ export default function WatchlistScreen() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {rulesSaved && (
                 <span style={{ fontSize: 13, color: "var(--positive)", fontWeight: 700 }}>
-                  ✓ Rules saved for this session!
+                  Rules saved
                 </span>
               )}
               <button className="button" type="submit">
-                Save Alert Rules
+                Save rules
               </button>
             </div>
           </div>
@@ -235,7 +234,7 @@ export default function WatchlistScreen() {
       <section className="panel">
         <div className="panel-header">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="panel-title">Session Alerts Inbox</span>
+            <span className="panel-title">Recent alerts</span>
             {unreadAlerts.length > 0 && (
               <span className="badge badge-attention">{unreadAlerts.length} Unread</span>
             )}
@@ -244,7 +243,7 @@ export default function WatchlistScreen() {
 
         {alerts.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted)", fontStyle: "italic", padding: "10px 0" }}>
-            No triggered alerts yet for this session.
+            No alerts have triggered yet.
           </p>
         ) : (
           <div>
@@ -284,8 +283,8 @@ export default function WatchlistScreen() {
       {/* Monitored Holdings List */}
       <section className="panel">
         <div className="panel-header">
-          <span className="panel-title">Monitored Portfolio Holdings</span>
-          <span className="badge badge-routine">{companies.length} Companies</span>
+          <span className="panel-title">Tracked companies</span>
+          <span className="badge badge-routine">{companies.length}</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -315,7 +314,7 @@ export default function WatchlistScreen() {
                 className="button secondary"
                 style={{ minHeight: 32, padding: "0 12px", fontSize: 11.5 }}
                 onClick={() => {
-                  window.location.hash = "#/research";
+                  window.location.hash = `#/research?symbol=${encodeURIComponent(item.symbol)}`;
                 }}
               >
                 Research

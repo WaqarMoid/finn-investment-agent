@@ -151,6 +151,7 @@ export default function ResearchScreen() {
         setReport(next);
         setQuery(next.company.symbol);
         setTab(next.overview_facts.length ? "facts" : next.guidance_ledger.length ? "ledger" : "sources");
+        window.history.replaceState(null, "", `#/research?symbol=${encodeURIComponent(next.company.symbol)}`);
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -161,7 +162,8 @@ export default function ResearchScreen() {
   };
 
   useEffect(() => {
-    load("INFY");
+    const requested = new URLSearchParams(window.location.hash.split("?")[1] || "").get("symbol");
+    load(requested || "INFY");
     return () => activeRequest.current?.abort();
   }, []);
 
