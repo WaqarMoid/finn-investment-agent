@@ -37,7 +37,7 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
     setLoading(true);
     setError(null);
 
-    fetch(`/api/v1/evidence/${evidenceId}`)
+    fetch(`/api/v1/evidence/${encodeURIComponent(evidenceId)}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Evidence ${evidenceId} not found (${res.status})`);
@@ -52,7 +52,6 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
       })
       .catch((err) => {
         if (!cancelled) {
-          // Fallback for demo preview if mock ID
           setError(err.message);
           setLoading(false);
         }
@@ -63,7 +62,6 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
     };
   }, [evidenceId]);
 
-  // Close on Escape key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -74,153 +72,115 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
 
   return (
     <div
-      className="evidence-drawer-overlay"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        display: "flex",
-        justifyContent: "flex-end",
-        backgroundColor: "rgba(23, 43, 58, 0.4)",
-        backdropFilter: "blur(2px)",
-      }}
+      className="drawer-backdrop"
       onClick={onClose}
     >
       <div
-        className="evidence-drawer"
+        className="drawer-sheet"
         role="dialog"
         aria-modal="true"
         aria-labelledby="evidence-drawer-title"
         style={{
-          width: "100%",
-          maxWidth: "480px",
-          height: "100%",
-          backgroundColor: "var(--surface)",
-          boxShadow: "-4px 0 24px rgba(0, 0, 0, 0.15)",
-          display: "flex",
-          flexDirection: "column",
-          padding: "var(--space-4)",
-          overflowY: "auto",
+          width: "min(100%, 560px)",
+          margin: "0 auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="drawer-grab-handle" />
+
         {/* Drawer Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "var(--space-3)", borderBottom: "1px solid var(--line)", paddingBottom: "var(--space-3)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div>
-            <span className="badge" style={{ background: "var(--accent-soft)", color: "var(--accent)", marginBottom: "4px" }}>
-              PRIMARY EVIDENCE
-            </span>
-            <h2 id="evidence-drawer-title" style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--ink)", marginTop: "4px" }}>
-              Source Verification
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span className="badge badge-positive">VERIFIED PRIMARY SOURCE</span>
+              {data && <span className="badge badge-routine">Page {data.pdf_page_1based}</span>}
+            </div>
+            <h2 id="evidence-drawer-title" style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}>
+              Citation Evidence
             </h2>
           </div>
           <button
+            className="icon-button"
             onClick={onClose}
             aria-label="Close evidence drawer"
-            style={{
-              background: "none",
-              border: "1px solid var(--line)",
-              borderRadius: "var(--radius-control)",
-              padding: "6px 12px",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              minHeight: "36px",
-            }}
           >
-            Close &times;
+            &times;
           </button>
         </div>
 
         {loading && (
-          <div style={{ padding: "var(--space-6) 0", textAlign: "center", color: "var(--muted)" }}>
-            Loading primary evidence citation...
+          <div className="empty-state">
+            <p>Retrieving verified primary source page and excerpt…</p>
           </div>
         )}
 
         {error && !data && (
           <div className="notice error-notice" role="alert">
-            <strong>Evidence unavailable.</strong>
-            <p style={{ fontSize: "0.8125rem", marginTop: "8px" }}>{error}</p>
-            <p style={{ fontSize: "0.75rem", marginTop: "8px" }}>FINN will not substitute a sample quotation when a citation cannot be retrieved.</p>
+            <strong>Evidence citation unavailable</strong>
+            <p style={{ fontSize: 12.5, marginTop: 6 }}>{error}</p>
+            <p style={{ fontSize: 12, marginTop: 6, color: "var(--muted)" }}>FINN never invents mock citations when a primary document span is absent.</p>
           </div>
         )}
 
         {data && (
           <>
-            {/* Document Metadata */}
-            <div style={{ marginBottom: "var(--space-4)", fontSize: "0.8125rem", color: "var(--muted)", lineHeight: 1.6 }}>
-              <div><strong>Issuer:</strong> {data.company.legal_name} ({data.company.isin})</div>
-              <div><strong>Publisher:</strong> {data.document.publisher} &bull; <strong>Type:</strong> {data.document.source_type}</div>
-              {data.document.fiscal_period && <div><strong>Fiscal Period:</strong> {data.document.fiscal_period}</div>}
-              <div><strong>Exact PDF Page:</strong> Page {data.pdf_page_1based} (1-based index)</div>
-              <div><strong>Verification State:</strong> {data.verification_state}</div>
+            {/* Issuer Metadata Pill Group */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+              <span className="chip">🏢 {data.company.legal_name}</span>
+              <span className="chip">📄 {data.document.publisher}</span>
+              {data.document.fiscal_period && <span className="chip">📅 {data.document.fiscal_period}</span>}
+              <span className="chip">📍 Page {data.pdf_page_1based}</span>
             </div>
 
-            {/* Verbatim Excerpt */}
-            <div style={{ marginBottom: "var(--space-4)" }}>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", marginBottom: "6px" }}>
-                Verbatim Primary Source Excerpt
-              </label>
+            {/* Verbatim Excerpt Card */}
+            <div className="module-card" style={{ marginBottom: 16 }}>
+              <div className="module-card-title">
+                <span>VERBATIM PRIMARY EXCERPT</span>
+                <span className="badge badge-routine">Untransformed</span>
+              </div>
               <blockquote
                 style={{
-                  borderLeft: "3px solid var(--accent)",
-                  padding: "var(--space-3)",
-                  background: "var(--surface-muted)",
-                  borderRadius: "0 var(--radius-control) var(--radius-control) 0",
-                  fontStyle: "italic",
-                  fontSize: "0.875rem",
+                  margin: 0,
+                  fontSize: 14.5,
+                  lineHeight: 1.55,
                   color: "var(--ink)",
-                  lineHeight: 1.6,
+                  fontStyle: "italic",
                 }}
               >
                 &ldquo;{data.excerpt}&rdquo;
               </blockquote>
             </div>
 
+            {/* Document Details */}
+            <div style={{ padding: "0 4px", marginBottom: 20, fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
+              <div><strong>Filing Identifier:</strong> {data.document.id}</div>
+              <div><strong>ISIN:</strong> {data.company.isin}</div>
+              {data.printed_label && <div><strong>Section:</strong> {data.printed_label}</div>}
+            </div>
+
             {/* Actions */}
-            <div style={{ marginTop: "auto", paddingTop: "var(--space-4)", borderTop: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {data.document.source_url && (
                 <a
+                  className="button accent"
                   href={data.document.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    background: "var(--accent)",
-                    color: "#FFF",
-                    padding: "10px",
-                    borderRadius: "var(--radius-control)",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    minHeight: "var(--min-touch-target)",
-                    lineHeight: "24px",
-                  }}
+                  style={{ width: "100%", justifyContent: "center" }}
                 >
-                  Open Original Primary PDF &rarr;
+                  Open Original Document ↗
                 </a>
               )}
+              <button
+                className="button secondary"
+                onClick={onClose}
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                Done
+              </button>
             </div>
           </>
         )}
-
-        <button
-          onClick={onClose}
-          style={{
-            marginTop: "var(--space-2)",
-            background: "none",
-            border: "1px solid var(--line)",
-            color: "var(--muted)",
-            padding: "10px",
-            borderRadius: "var(--radius-control)",
-            fontSize: "0.875rem",
-            cursor: "pointer",
-          }}
-        >
-          Back to Review
-        </button>
       </div>
     </div>
   );

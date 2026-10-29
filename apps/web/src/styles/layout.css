@@ -1,80 +1,755 @@
-.app-shell { min-height: 100dvh; background: var(--canvas); }
-.app-rail { display: contents; }
-.rail-brand { display: none; }
-.app-stage { min-width: 0; }
-.app-header { position: sticky; top: 0; z-index: 40; height: 64px; display: flex; align-items: center; gap: 10px; padding: env(safe-area-inset-top, 0) 18px 0; background: color-mix(in srgb, var(--canvas) 88%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); backdrop-filter: blur(18px); }
-.mobile-brand { display: flex; align-items: center; gap: 9px; margin-right: auto; font-weight: 800; letter-spacing: -.02em; }
-.brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: var(--ink); color: var(--surface); font-size: 15px; font-weight: 900; }
-:root[data-theme="dark"] .brand-mark { background: #f8f8fa; color: #09090b; }
-.connection-pill { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 11px; border-radius: 999px; background: var(--positive-soft); color: var(--positive); font-size: 12px; font-weight: 700; }
-.connection-pill.offline { background: var(--negative-soft); color: var(--negative); }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent); }
-.icon-button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--surface); cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
-.icon-button svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.main-content { width: min(100%, 980px); min-height: calc(100dvh - 64px); margin: 0 auto; padding: 22px 16px calc(88px + env(safe-area-inset-bottom, 0)); }
+/* Revolut App Mobile-First Layout & Component Styles */
 
-.bottom-nav { position: fixed; z-index: 50; left: 12px; right: 12px; bottom: max(10px, env(safe-area-inset-bottom)); height: 66px; display: flex; align-items: center; padding: 6px; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(20px); box-shadow: var(--shadow); }
-.nav-item { flex: 1; height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; border-radius: 16px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 650; cursor: pointer; }
-.nav-item.active { color: var(--ink); background: var(--surface-muted); }
-.nav-icon { width: 21px; height: 21px; }
-
-.screen-kicker { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.screen-title { margin-top: 5px; font-size: clamp(30px, 8vw, 48px); line-height: 1.02; letter-spacing: -.045em; font-weight: 760; }
-.screen-subtitle { margin-top: 10px; max-width: 640px; color: var(--muted); font-size: 14px; }
-.screen-heading { margin-bottom: 22px; }
-.panel { margin-bottom: 16px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 1px 0 rgba(0,0,0,.02); }
-.panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.panel-title { color: var(--ink); font-size: 17px; font-weight: 750; letter-spacing: -.015em; }
-.badge { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 750; }
-.badge-attention { color: var(--negative); background: var(--negative-soft); }
-.badge-worth-a-look { color: var(--warning); background: var(--warning-soft); }
-.badge-routine { color: var(--muted); background: var(--surface-muted); }
-.badge-synthetic { color: var(--warning); background: var(--warning-soft); }
-.button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--ink); color: var(--surface); font-weight: 720; cursor: pointer; }
-:root[data-theme="dark"] .button { color: #09090b; background: #f8f8fa; }
-.button.secondary { color: var(--ink); background: var(--surface-muted); }
-.button:disabled { opacity: .55; cursor: not-allowed; }
-.btn { min-height: 44px; padding: 0 16px; border: 0; border-radius: 14px; font-weight: 720; cursor: pointer; }
-.btn-primary { background: var(--ink); color: var(--surface); }
-.btn-secondary { background: var(--surface-muted); color: var(--ink); }
-.segmented { display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; border-radius: 16px; background: var(--surface-muted); }
-.segmented button { min-height: 38px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
-.segmented button.active { background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
-.field input { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid var(--control-border); border-radius: 14px; background: var(--surface); }
-.custom-window { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-.custom-window .button { grid-column: 1 / -1; }
-.summary-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; overflow: hidden; margin: 16px 0; border: 1px solid var(--line); border-radius: 18px; background: var(--line); }
-.summary-stat { padding: 14px 10px; background: var(--surface); }
-.summary-stat strong { display: block; font-size: 22px; line-height: 1; }
-.summary-stat span { color: var(--muted); font-size: 11px; }
-.event-card { padding: 16px 0; border-top: 1px solid var(--line); }
-.event-card:first-of-type { border-top: 0; padding-top: 2px; }
-.event-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
-.event-card h3 { margin: 8px 0 5px; font-size: 16px; line-height: 1.35; }
-.event-card p { color: var(--muted); font-size: 13px; }
-.event-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
-.source-link { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 12px; background: var(--accent-soft); font-size: 12px; font-weight: 750; }
-.empty-state { padding: 34px 20px; text-align: center; }
-.empty-state p { margin: 7px auto 18px; max-width: 470px; color: var(--muted); font-size: 14px; }
-.notice { margin-bottom: 14px; padding: 12px 14px; border-radius: 14px; background: var(--accent-soft); color: var(--ink); font-size: 13px; }
-.error-notice { background: var(--negative-soft); color: var(--negative); }
-
-@media (min-width: 760px) {
-  .main-content { padding: 34px 28px 52px; }
-  .custom-window { grid-template-columns: 1fr 1fr auto; align-items: end; }
-  .custom-window .button { grid-column: auto; }
+.app-shell {
+  min-height: 100dvh;
+  background: var(--canvas);
 }
+
+.app-rail {
+  display: contents;
+}
+
+.rail-brand {
+  display: none;
+}
+
+.app-stage {
+  min-width: 0;
+}
+
+/* Revolut Sticky Top Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: env(safe-area-inset-top, 0) 18px 0;
+  background: color-mix(in srgb, var(--canvas) 85%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: 16px;
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--canvas);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+:root[data-theme="dark"] .brand-mark {
+  background: #ffffff;
+  color: #000000;
+}
+
+.connection-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--positive-soft);
+  color: var(--positive);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.connection-pill.offline {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.icon-button:active {
+  transform: scale(0.94);
+}
+
+.icon-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Revolut Main Canvas Content */
+.main-content {
+  width: min(100%, 780px);
+  min-height: calc(100dvh - 60px);
+  margin: 0 auto;
+  padding: 18px 16px calc(92px + env(safe-area-inset-bottom, 0));
+}
+
+/* Revolut Floating Bottom Navigation Dock */
+.bottom-nav {
+  position: fixed;
+  z-index: 50;
+  left: 16px;
+  right: 16px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: var(--shadow-float);
+}
+
+.nav-item {
+  flex: 1;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 9999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-item.active {
+  color: var(--ink);
+  background: var(--surface-muted);
+}
+
+:root[data-theme="dark"] .nav-item.active {
+  color: #ffffff;
+  background: var(--surface-raised);
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Headings */
+.screen-heading {
+  margin-bottom: 20px;
+}
+
+.screen-kicker {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.screen-title {
+  margin-top: 4px;
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.screen-subtitle {
+  margin-top: 8px;
+  max-width: 600px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Revolut Stadium Card Panel */
+.panel {
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-title {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+/* Revolut Pill Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-attention {
+  color: var(--negative);
+  background: var(--negative-soft);
+}
+
+.badge-worth-a-look {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.badge-routine {
+  color: var(--muted);
+  background: var(--surface-muted);
+}
+
+.badge-positive {
+  color: var(--positive);
+  background: var(--positive-soft);
+}
+
+.badge-synthetic {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+/* Revolut Pill Buttons */
+.button, .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--canvas);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+:root[data-theme="dark"] .button,
+:root[data-theme="dark"] .btn-primary {
+  color: #000000;
+  background: #ffffff;
+}
+
+.button:active, .btn:active {
+  transform: scale(0.97);
+}
+
+.button.secondary, .btn-secondary {
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+}
+
+.button.accent {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.button:disabled, .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Revolut Segmented Control Pill Container */
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.segmented::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented button {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.segmented button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .segmented button.active {
+  background: var(--surface-raised);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Revolut Form Inputs */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.field input, .field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  outline: none;
+}
+
+.custom-window {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.custom-window .button {
+  grid-column: 1 / -1;
+}
+
+/* Revolut Balance / Insight Summary Strip */
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.summary-stat {
+  padding: 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.summary-stat strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.summary-stat span {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 3px;
+  display: block;
+}
+
+/* Revolut Quick Action Row */
+.quick-action-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  scrollbar-width: none;
+}
+
+.quick-action-row::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  min-width: 62px;
+}
+
+.quick-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface-muted);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.quick-action-btn:active .quick-action-icon {
+  transform: scale(0.92);
+}
+
+.quick-action-label {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Revolut Company Avatar */
+.company-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.avatar-infy { background: linear-gradient(135deg, #0075ff, #0052cc); }
+.avatar-tcs { background: linear-gradient(135deg, #8a2be2, #4b0082); }
+.avatar-hcltech { background: linear-gradient(135deg, #00b88b, #007a5c); }
+.avatar-reliance { background: linear-gradient(135deg, #e23b4a, #a61c28); }
+.avatar-coforge { background: linear-gradient(135deg, #ff9800, #cc7a00); }
+.avatar-dixon { background: linear-gradient(135deg, #00bcd4, #00838f); }
+.avatar-astral { background: linear-gradient(135deg, #3f51b5, #1a237e); }
+.avatar-generic { background: linear-gradient(135deg, #5e6573, #3a3f47); }
+
+/* Revolut Event / Transaction Card */
+.event-card {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.event-card:first-of-type {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.event-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.event-card h3 {
+  margin: 7px 0 5px;
+  font-size: 15.5px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.event-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  transition: opacity 0.15s ease;
+}
+
+.source-link:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+/* Empty State & Notices */
+.empty-state {
+  padding: 32px 18px;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 6px auto 16px;
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.notice {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.error-notice {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+/* Research Modules Grid */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.module-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-muted);
+}
+
+.module-card-title {
+  font-size: 13.5px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Revolut Bottom Sheet Drawer */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.drawer-sheet {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0));
+  max-height: 85dvh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-float);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-grab-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--muted);
+  opacity: 0.35;
+  margin: 0 auto 16px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Desktop Responsiveness */
+@media (min-width: 768px) {
+  .main-content {
+    padding: 28px 24px 60px;
+  }
+  .custom-window {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+  .custom-window .button {
+    grid-column: auto;
+  }
+}
+
 @media (min-width: 1024px) {
-  .app-shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); }
-  .app-rail { position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; padding: 22px 14px; border-right: 1px solid var(--line); background: var(--surface); }
-  .rail-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 30px; }
-  .brand-word { font-size: 18px; font-weight: 800; }
-  .mobile-brand { display: none; }
-  .app-header { justify-content: flex-end; }
-  .bottom-nav { position: static; height: auto; display: flex; flex-direction: column; align-items: stretch; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
-  .nav-item { flex: none; height: 48px; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 14px; border-radius: 14px; font-size: 13px; }
-  .nav-item.active { background: var(--surface-muted); }
-  .main-content { padding-top: 38px; }
+  .app-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .app-rail {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .rail-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px 32px;
+  }
+  .brand-word {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .mobile-brand {
+    display: none;
+  }
+  .app-header {
+    justify-content: flex-end;
+  }
+  .bottom-nav {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .nav-item {
+    flex: none;
+    height: 46px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    font-size: 13.5px;
+  }
+  .main-content {
+    padding-top: 36px;
+  }
 }

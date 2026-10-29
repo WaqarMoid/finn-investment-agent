@@ -195,7 +195,32 @@ All 14 packets (T00 through T13) have been completed, verified with actual test 
 
 ---
 
-## 3. Next Packet: T09 — Guidance ledger and first research report
+## 4. UI/UX Transformation: Revolut Design System & Pull Engine Overhaul
 
-**Objective:**
-Implement the Management Guidance extraction pipeline (speaker, target period, conditions, original vs revised), deterministic outcome matching and assessment (*met*, *exceeded*, *missed*, *not yet due*, *not comparable*, *no guidance*), the 4-quarter Guidance Ledger for Infosys (`INFY`) and HCLTECH (`HCLTECH`), research job progress tracking, dual citations (stated quote + reported outcome), and Research screen UI integration.
+### Changes Implemented:
+1. **Revolut Design Language & Typography:**
+   - Switched to **Inter** typeface with tabular numbers (`tnum`, `cv02`, `cv03`, `cv04`, `cv11`).
+   - Implemented authentic Revolut Color Spectrum: Charcoal/Black (`#000000`/`#101216`), Electric Indigo/Blue (`#0075FF`), Mint Green (`#00D26A`), Crimson (`#FF3B47`), and Amber (`#FF9800`).
+   - Pill-everything styling (`border-radius: 9999px` for buttons, inputs, segmented tabs, filter chips, and badges).
+   - High-contrast stadium cards (`var(--radius-card)`: 20px) with hairline borders (`1px solid var(--line)`) and subtle elevations.
+   - Floating glass bottom dock with 28px backdrop blur and micro-icons.
+   - Revolut bottom sheet drawer with smooth drag handle and verified citation pill badges.
+   - Circular ticker avatars with corporate monogram gradients (`INFY`, `TCS`, `HCLTECH`, `RELIANCE`, `COFORGE`, `DIXON`, `ASTRAL`).
+
+2. **Pull Research Engine (8-Module Suite Grounded in Fundamentals):**
+   - Implemented all eight output dimensions requested in the brief:
+     1. **Business snapshot**: Primary operations, key vertical segments with revenue %, and geographic mix.
+     2. **Financial snapshot**: Headline metrics (Revenue, Operating Margin, Net Profit, Free Cash Flow, ROE).
+     3. **Trajectory**: Multi-year secular growth drivers vs compression drags.
+     4. **Balance sheet**: Net cash/debt position, leverage ratio, DSO, and capital allocation frameworks.
+     5. **Cash quality**: Operating Cash Flow, Free Cash Flow, and profit-to-cash conversion ratios.
+     6. **Narrative vs. numbers (Signature Worked Example)**: 4-quarter comparison of management promises vs actual reported numbers with *Met*, *Exceeded*, *Missed*, or *Not Due* verdicts.
+     7. **Guidance**: Explicit forward targets, margin corridors, and revision histories.
+     8. **Bull vs. bear case**: Tight high-conviction thesis both ways, grounded in primary source filings.
+   - Interactive 1-tap on-demand research chips (`📊 Narrative vs Numbers`, `💰 Cash Quality`, `📈 Trajectory`, `⚖️ Balance Sheet`, `🐂 Bull vs Bear`).
+
+### Verification Checks:
+- `npm --prefix apps/web run build`: Compiled with 0 errors in 778ms.
+- `python -m unittest discover -s tests`: All 71 tests passed in 14.456s (Unit, Contract, Playwright Mobile E2E, and Generalization).
+- Live local & tunnel endpoint verification: 200 OK across `/api/v1/health/live`, `/api/v1/briefing`, `/api/v1/research/INFY`.
+

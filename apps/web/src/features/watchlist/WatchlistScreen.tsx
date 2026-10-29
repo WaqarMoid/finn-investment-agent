@@ -30,6 +30,18 @@ interface PreviewItem {
   match_reason: string;
 }
 
+const getAvatarClass = (symbol: string) => {
+  const s = symbol.toUpperCase().replace(".NS", "");
+  if (s.includes("INFY")) return "avatar-infy";
+  if (s.includes("TCS")) return "avatar-tcs";
+  if (s.includes("HCL")) return "avatar-hcltech";
+  if (s.includes("REL")) return "avatar-reliance";
+  if (s.includes("COF")) return "avatar-coforge";
+  if (s.includes("DIX")) return "avatar-dixon";
+  if (s.includes("AST")) return "avatar-astral";
+  return "avatar-generic";
+};
+
 export default function WatchlistScreen() {
   const [companies, setCompanies] = useState<WatchlistCompany[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
@@ -39,7 +51,6 @@ export default function WatchlistScreen() {
   const [previewMatches, setPreviewMatches] = useState<PreviewItem[] | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
-  // Load watchlist, notification rules, and alerts
   useEffect(() => {
     fetch("/api/v1/watchlist")
       .then((res) => res.json())
@@ -123,25 +134,25 @@ export default function WatchlistScreen() {
 
   return (
     <div className="watchlist-screen">
-      <div style={{ marginBottom: "var(--space-3)" }}>
-        <h1 style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--ink)" }}>Watchlist & Notification Rules</h1>
-        <p style={{ fontSize: "0.8125rem", color: "var(--muted)" }}>
-          Session-isolated preferences &bull; Anonymous reviewer session active
+      <header className="screen-heading">
+        <div className="screen-kicker">Portfolio & Trigger Rules</div>
+        <h1 className="screen-title">Watchlist & Alerts</h1>
+        <p className="screen-subtitle">
+          Session-isolated portfolio preferences and automated thresholds for material disclosures, volume spikes, and unusual price swings.
         </p>
-      </div>
+      </header>
 
       {/* Rules Configuration Panel */}
-      <div className="panel">
-        <h2 className="panel-title" style={{ fontSize: "1rem", marginBottom: "var(--space-3)" }}>
-          Notification Trigger Thresholds
-        </h2>
+      <section className="panel">
+        <div className="panel-header">
+          <span className="panel-title">Trigger Thresholds</span>
+          <span className="badge badge-routine">Session Scoped</span>
+        </div>
 
         <form onSubmit={handleSave}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
-            <div>
-              <label htmlFor="price-input" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", marginBottom: "4px" }}>
-                Price Move Threshold (%)
-              </label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <div className="field">
+              <label htmlFor="price-input">Price Move Threshold (%)</label>
               <input
                 id="price-input"
                 type="number"
@@ -150,21 +161,14 @@ export default function WatchlistScreen() {
                 max="25.0"
                 value={priceThreshold}
                 onChange={(e) => setPriceThreshold(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "var(--radius-control)",
-                  border: "1px solid var(--control-border)",
-                  fontSize: "0.875rem",
-                }}
               />
-              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>Alert if daily move strictly exceeds this</span>
+              <span style={{ fontSize: 11, color: "var(--muted)", paddingLeft: 4 }}>
+                Alert if daily move strictly exceeds ±X%
+              </span>
             </div>
 
-            <div>
-              <label htmlFor="volume-input" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", marginBottom: "4px" }}>
-                Volume Multiple (vs 20D)
-              </label>
+            <div className="field">
+              <label htmlFor="volume-input">Volume Multiple (vs 20D)</label>
               <input
                 id="volume-input"
                 type="number"
@@ -173,57 +177,30 @@ export default function WatchlistScreen() {
                 max="10.0"
                 value={volumeMultiple}
                 onChange={(e) => setVolumeMultiple(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "var(--radius-control)",
-                  border: "1px solid var(--control-border)",
-                  fontSize: "0.875rem",
-                }}
               />
-              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>Alert if volume &gt; N &times; 20-day mean</span>
+              <span style={{ fontSize: 11, color: "var(--muted)", paddingLeft: 4 }}>
+                Alert if volume &gt; N × 20-day baseline
+              </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
             <button
               type="button"
+              className="button secondary"
               onClick={handlePreview}
               disabled={previewLoading}
-              style={{
-                background: "var(--surface-muted)",
-                color: "var(--ink)",
-                border: "1px solid var(--line)",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-control)",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                cursor: previewLoading ? "not-allowed" : "pointer",
-              }}
             >
-              {previewLoading ? "Testing..." : "Test on recent data"}
+              {previewLoading ? "Testing…" : "Test on recent data"}
             </button>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {rulesSaved && (
-                <span style={{ fontSize: "0.8125rem", color: "var(--positive)", fontWeight: 600 }}>
-                  Rules saved for this session!
+                <span style={{ fontSize: 13, color: "var(--positive)", fontWeight: 700 }}>
+                  ✓ Rules saved for this session!
                 </span>
               )}
-              <button
-                type="submit"
-                style={{
-                  background: "var(--accent)",
-                  color: "#FFF",
-                  border: "none",
-                  padding: "8px 16px",
-                  borderRadius: "var(--radius-control)",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  minHeight: "var(--min-touch-target)",
-                }}
-              >
+              <button className="button" type="submit">
                 Save Alert Rules
               </button>
             </div>
@@ -232,28 +209,33 @@ export default function WatchlistScreen() {
 
         {/* Non-notifying Preview Results */}
         {previewMatches && (
-          <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-3)", borderTop: "1px solid var(--line)" }}>
-            <h4 style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
-              Preview Matches ({previewMatches.length} recent events match rules)
-            </h4>
-            <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: "8px" }}>
-              Non-notifying preview: these events match your criteria but were not added to your inbox.
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <h4 style={{ fontSize: 14, fontWeight: 750, color: "var(--ink)" }}>
+                Rule Test Matches ({previewMatches.length} recent events match criteria)
+              </h4>
+              <span className="badge badge-routine">Non-Notifying</span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 10 }}>
+              These events match your criteria but do not clutter your alerts inbox.
             </p>
             {previewMatches.map((m, idx) => (
-              <div key={idx} style={{ fontSize: "0.8125rem", padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
+              <div key={idx} style={{ fontSize: 13, padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
                 <strong>{m.symbol}</strong>: {m.title}
-                <span className="badge badge-worth-a-look" style={{ marginLeft: "8px", fontSize: "0.6875rem" }}>{m.tier}</span>
+                <span className="badge badge-worth-a-look" style={{ marginLeft: 8, fontSize: 11 }}>
+                  {m.tier}
+                </span>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
       {/* Session Alerts Inbox */}
-      <div className="panel">
+      <section className="panel">
         <div className="panel-header">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-            <h2 className="panel-title" style={{ fontSize: "1rem" }}>Session Alerts Inbox</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="panel-title">Session Alerts Inbox</span>
             {unreadAlerts.length > 0 && (
               <span className="badge badge-attention">{unreadAlerts.length} Unread</span>
             )}
@@ -261,8 +243,8 @@ export default function WatchlistScreen() {
         </div>
 
         {alerts.length === 0 ? (
-          <p style={{ fontSize: "0.8125rem", color: "var(--muted)", fontStyle: "italic" }}>
-            No alerts triggered yet for this session.
+          <p style={{ fontSize: 13, color: "var(--muted)", fontStyle: "italic", padding: "10px 0" }}>
+            No triggered alerts yet for this session.
           </p>
         ) : (
           <div>
@@ -270,32 +252,25 @@ export default function WatchlistScreen() {
               <div
                 key={al.id}
                 style={{
-                  padding: "8px 0",
+                  padding: "10px 0",
                   borderBottom: "1px solid var(--line)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  opacity: al.acknowledged ? 0.6 : 1.0,
+                  opacity: al.acknowledged ? 0.55 : 1.0,
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--ink)" }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>
                     {al.symbol}: {al.source_type.toUpperCase()}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{al.reason}</div>
+                  <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{al.reason}</div>
                 </div>
                 {!al.acknowledged && (
                   <button
+                    className="button secondary"
+                    style={{ minHeight: 32, padding: "0 12px", fontSize: 11.5 }}
                     onClick={() => handleAcknowledge(al.id)}
-                    style={{
-                      background: "var(--accent-soft)",
-                      color: "var(--accent)",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "var(--radius-control)",
-                      fontSize: "0.75rem",
-                      cursor: "pointer",
-                    }}
                   >
                     Acknowledge
                   </button>
@@ -304,14 +279,13 @@ export default function WatchlistScreen() {
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Monitored Companies List */}
-      <div className="panel">
+      {/* Monitored Holdings List */}
+      <section className="panel">
         <div className="panel-header">
-          <h2 className="panel-title" style={{ fontSize: "1rem" }}>
-            Monitored Portfolio Holdings ({companies.length} Companies)
-          </h2>
+          <span className="panel-title">Monitored Portfolio Holdings</span>
+          <span className="badge badge-routine">{companies.length} Companies</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -322,21 +296,34 @@ export default function WatchlistScreen() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "8px 0",
+                padding: "12px 0",
                 borderBottom: "1px solid var(--line)",
               }}
             >
-              <div>
-                <strong style={{ fontSize: "0.875rem", color: "var(--ink)" }}>{item.symbol}</strong>
-                <p style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{item.legal_name} &bull; {item.sector}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className={`company-avatar ${getAvatarClass(item.symbol)}`}>
+                  {item.symbol.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <strong style={{ fontSize: 14.5, color: "var(--ink)" }}>{item.symbol}</strong>
+                  <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>
+                    {item.legal_name} · {item.sector}
+                  </p>
+                </div>
               </div>
-              <span className="badge badge-routine" style={{ fontSize: "0.6875rem" }}>
-                Active Monitoring
-              </span>
+              <button
+                className="button secondary"
+                style={{ minHeight: 32, padding: "0 12px", fontSize: 11.5 }}
+                onClick={() => {
+                  window.location.hash = "#/research";
+                }}
+              >
+                Research
+              </button>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
