@@ -143,8 +143,8 @@ class TestGuidanceLedger(unittest.TestCase):
 
         self.assertEqual(data["company"]["symbol"], "INFY")
         self.assertEqual(data["guidance_ledger"], [])
-        self.assertEqual(data["overview_facts"], [])
-        self.assertGreaterEqual(len(data["source_coverage"]), 2)
+        self.assertGreaterEqual(len(data["overview_facts"]), 3)
+        self.assertGreaterEqual(len(data["source_coverage"]), 3)
         self.assertTrue(all(item["source_url"].startswith("https://www.infosys.com/") for item in data["source_coverage"]))
         self.assertGreaterEqual(len(data["limitations"]), 1)
 

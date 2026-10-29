@@ -155,9 +155,8 @@ python -m pytest -q
 
 ## Public mobile deployment
 
-The repository includes a Render Blueprint in `render.yaml`. Open the link below, connect the GitHub repository, and Render will build the Docker image and provide a normal HTTPS `onrender.com` address with no tunnel password or IP prompt:
-
-[Deploy FINN on Render](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)
+- **Live Mobile Prototype:** [https://burner-trips-sell-murphy.trycloudflare.com](https://burner-trips-sell-murphy.trycloudflare.com) *(Hosted via Cloudflare edge; opens directly on phone or desktop without password or IP verification)*
+- **One-Click Deploy Blueprint:** [Deploy FINN on Render](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)
 
 Render's free web-service filesystem is ephemeral and may spin down after inactivity. FINN recreates its database, official source catalog, and current NSE feed at startup. Use a paid persistent disk or managed database if watchlists must survive service replacement.
 

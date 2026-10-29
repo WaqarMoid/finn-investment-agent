@@ -16,7 +16,7 @@ I built FINN, a mobile-first, evidence-first portfolio briefing and primary-sour
 1. **Evidence-First Portfolio Briefing:** A priority-ranked digest that syncs the selected 24-hour, seven-day, or custom interval from NSE and scopes results to the session's 18-company watchlist. Each event opens its actual NSE attachment. Counts reconcile to the source filings in the selected time window.
 2. **Evidence-Gated Research Desk:** Official issuer source libraries are registered for INFY, HCLTECH, TCS, and RELIANCE. Financial facts and management-guidance verdicts appear only when page-level evidence has been parsed and verified; missing extraction is shown as a coverage gap instead of being replaced with sample figures or cross-company citations.
 
-- **Current mobile prototype:** [https://weekly-trace-benchmark-declared.trycloudflare.com](https://weekly-trace-benchmark-declared.trycloudflare.com) *(no password or IP prompt; temporary quick tunnel)*
+- **Mobile-First Prototype URL:** [https://burner-trips-sell-murphy.trycloudflare.com](https://burner-trips-sell-murphy.trycloudflare.com) *(No password or IP verification required; opens directly on phone and desktop)*
 - **Permanent-hosting setup:** [one-click Render Blueprint](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)
 - **GitHub Repository:** [https://github.com/WaqarMoid/finn-investment-agent](https://github.com/WaqarMoid/finn-investment-agent)
 - **AI Build History:**

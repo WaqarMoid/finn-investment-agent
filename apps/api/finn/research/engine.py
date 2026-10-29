@@ -60,9 +60,19 @@ class ResearchEngine:
                ORDER BY ff.period_end DESC LIMIT 6""",
             (company_id,),
         ).fetchall()
+        def display_value(value: str, unit: str) -> str:
+            if unit == "percentage":
+                return f"{value}%"
+            if unit == "crore":
+                try:
+                    return f"₹{int(value):,} Cr"
+                except ValueError:
+                    return f"₹{value} Cr"
+            return f"{value} {unit}"
+
         return [{
             "label": row["metric_key"].replace("_", " ").title(),
-            "value": f"{row['original_value']} {row['original_unit']}",
+            "value": display_value(row["original_value"], row["original_unit"]),
             "growth": row["fiscal_label"],
             "evidence_id": row["evidence_id"],
             "citation_num": index + 1,
