@@ -13,10 +13,11 @@ Hello ENAM team,
 
 I built FINN, a mobile-first, evidence-first portfolio briefing and primary-source research engine for Indian equity investors. It focuses on two core workflows:
 
-1. **Evidence-First Portfolio Briefing:** An opinionated, priority-ranked digest that sorts ingested exchange announcements into *Needs Attention*, *Worth a Look*, and *Routine* using deterministic safety rules (auditor distress, insolvency, and corporate actions always elevated). Every headline links to an immutable Evidence Drawer displaying the exact 1-based PDF page and verbatim quote. Unusual price moves (>5%) and volume spikes (>2x vs 20-session baseline) are evaluated with strict non-causal phrasing. All counts reconcile to source filings, and nothing is silently discarded.
-2. **Four-Quarter Management Guidance Ledger:** A signature research desk that extracts forward-looking guidance from official earnings transcripts, matches stated targets against reported financial results in deterministic Python code, and assigns auditable verdicts (*Met*, *Exceeded*, *Missed*, *Not Yet Due*, or *Qualitative Supported*). Both sides of every comparison feature dual-sided evidence inspection with direct primary document excerpts.
+1. **Evidence-First Portfolio Briefing:** A priority-ranked digest that syncs the selected 24-hour, seven-day, or custom interval from NSE and scopes results to the session's 18-company watchlist. Each event opens its actual NSE attachment. Counts reconcile to the source filings in the selected time window.
+2. **Evidence-Gated Research Desk:** Official issuer source libraries are registered for INFY, HCLTECH, TCS, and RELIANCE. Financial facts and management-guidance verdicts appear only when page-level evidence has been parsed and verified; missing extraction is shown as a coverage gap instead of being replaced with sample figures or cross-company citations.
 
-- **Prototype URL:** `https://bright-stingray-3.loca.lt` *(Tunnel IP / password if prompted: `14.139.38.125`)*
+- **Current mobile prototype:** [https://weekly-trace-benchmark-declared.trycloudflare.com](https://weekly-trace-benchmark-declared.trycloudflare.com) *(no password or IP prompt; temporary quick tunnel)*
+- **Permanent-hosting setup:** [one-click Render Blueprint](https://render.com/deploy?repo=https://github.com/WaqarMoid/finn-investment-agent)
 - **GitHub Repository:** [https://github.com/WaqarMoid/finn-investment-agent](https://github.com/WaqarMoid/finn-investment-agent)
 - **AI Build History:**
   - Architecture & Planning (ChatGPT): [https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e](https://chatgpt.com/s/cx_6ae2e567879881919375559c9eedc46e)
