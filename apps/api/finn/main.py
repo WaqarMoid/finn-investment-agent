@@ -46,8 +46,10 @@ async def lifespan(app: FastAPI):
                 today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
                 service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
 
-        # Seed primary document and verified guidance evidence
-        seed_verified_research_evidence(repo)
+        # Demo evidence is confined to fixture/replay runs. Production research
+        # indexes current exchange PDFs on demand instead of serving fixed stocks.
+        if os.getenv("FINN_EXCHANGE_SOURCE", "fixture").lower() != "nse":
+            seed_verified_research_evidence(repo)
     finally:
         conn.close()
     yield

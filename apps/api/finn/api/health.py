@@ -13,7 +13,7 @@ def get_liveness():
         status="ok",
         version=__version__,
         mode=os.getenv("FINN_MODE", "live"),
-        details={"process": "alive"}
+        details={"process": "alive", "git_commit": os.getenv("RENDER_GIT_COMMIT", "unknown")}
     )
 
 @router.get("/ready", response_model=HealthResponse)

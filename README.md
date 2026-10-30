@@ -101,6 +101,17 @@ pip install -r apps/api/requirements.txt
 cp .env.example .env
 ```
 
+For live research, set `FINN_MODE=live` and `FINN_EXCHANGE_SOURCE=nse`.
+FINN imports the official NSE EQ symbol master on the first unrecognized search,
+then fetches recent issuer transcripts, results, and annual reports on demand.
+The Research desk's **Refresh NSE filings** action checks for newer documents.
+Every displayed excerpt links to an indexed PDF page. PDF text quality and NSE
+availability vary, so missing structured figures are shown as coverage gaps.
+
+Set `GEMINI_API_KEY` on the server to enable source-grounded answer synthesis.
+Without it, questions return cited extractive passages. Keep the key out of
+the frontend and repository. `LLM_MODEL` defaults to `gemini-2.5-flash-lite`.
+
 ### Step 3: Run Application
 ```bash
 python -m uvicorn finn.main:app --app-dir apps/api --host 0.0.0.0 --port 8000
@@ -127,7 +138,7 @@ python -m pytest -q
 ```
 
 ### Running Test Subsets
-- **Unit Tests (58 tests):**
+- **Unit Tests:**
   ```bash
   python -m unittest discover -s tests/unit
   ```

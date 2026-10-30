@@ -155,9 +155,12 @@ class DocumentIndexer:
         if not clean_query:
             return []
 
-        # Join tokens with AND
-        tokens = clean_query.split()
-        fts_query = " ".join(tokens)
+        # Natural-language questions contain many terms that need not occur in
+        # one short PDF chunk. Rank a union of substantive terms instead.
+        tokens = [token for token in clean_query.split() if len(token) >= 3][:12]
+        if not tokens:
+            return []
+        fts_query = " OR ".join(f'"{token}"' for token in tokens)
 
         rows = self.conn.execute("""
             SELECT c.id, c.document_id, c.company_id, c.page_start, c.page_end,
@@ -165,6 +168,7 @@ class DocumentIndexer:
             FROM chunks_fts f
             JOIN document_chunks c ON f.chunk_id = c.id
             WHERE chunks_fts MATCH ? AND f.company_id = ?
+            ORDER BY bm25(chunks_fts)
             LIMIT ?
         """, (fts_query, company_id, limit)).fetchall()
 

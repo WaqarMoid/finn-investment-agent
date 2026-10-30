@@ -90,6 +90,8 @@ interface Report {
   as_of_date: string;
   stages: Array<{ label: string; status: string }>;
   overview_facts: Fact[];
+  research_highlights?: Array<{ label: string; excerpt: string; evidence_id: string; page: number }>;
+  refresh?: { discovered: number; indexed: number; pages: number; errors: string[] };
   guidance_ledger: GuidanceRow[];
   source_coverage: Source[];
   modules?: Fundamentals;
@@ -127,7 +129,7 @@ export default function ResearchScreen() {
   const [asking, setAsking] = useState(false);
   const activeRequest = useRef<AbortController | null>(null);
 
-  const load = async (symbol: string) => {
+  const load = async (symbol: string, refresh = false) => {
     activeRequest.current?.abort();
     const controller = new AbortController();
     activeRequest.current = controller;
@@ -136,7 +138,8 @@ export default function ResearchScreen() {
     setReport(null);
     setAnswer(null);
     try {
-      const response = await fetch(`/api/v1/research/${encodeURIComponent(symbol)}`, {
+      const response = await fetch(`/api/v1/research/${encodeURIComponent(symbol)}${refresh ? "/refresh" : ""}`, {
+        method: refresh ? "POST" : "GET",
         signal: controller.signal,
       });
       if (!response.ok) {
@@ -150,7 +153,7 @@ export default function ResearchScreen() {
       if (!controller.signal.aborted) {
         setReport(next);
         setQuery(next.company.symbol);
-        setTab(next.overview_facts.length ? "facts" : next.guidance_ledger.length ? "ledger" : "sources");
+        setTab(next.overview_facts.length || next.research_highlights?.length ? "facts" : next.guidance_ledger.length ? "ledger" : "sources");
         window.history.replaceState(null, "", `#/research?symbol=${encodeURIComponent(next.company.symbol)}`);
       }
     } catch (err) {
@@ -281,8 +284,17 @@ export default function ResearchScreen() {
             </div>
 
             <div className="research-coverage-line">
-              {report.source_coverage.length} primary sources · {report.overview_facts.length} verified facts · {report.guidance_ledger.length} guidance statements
+              {report.source_coverage.length} primary sources · {report.overview_facts.length} structured facts · {report.research_highlights?.length || 0} page excerpts · {report.guidance_ledger.length} guidance statements
             </div>
+            <button className="button secondary" style={{ marginTop: 12 }} disabled={loading}
+              onClick={() => load(report.company.symbol, true)}>
+              Refresh NSE filings
+            </button>
+            {report.refresh?.errors?.length ? (
+              <p className="research-help" role="status">Source update: {report.refresh.errors.join("; ")}</p>
+            ) : report.refresh?.indexed ? (
+              <p className="research-help" role="status">Indexed {report.refresh.indexed} new filing(s), {report.refresh.pages} pages.</p>
+            ) : null}
           </section>
 
           {/* Bounded free-form research */}
@@ -352,7 +364,7 @@ export default function ResearchScreen() {
               className={tab === "facts" ? "active" : ""}
               onClick={() => setTab("facts")}
             >
-              Facts · {report.overview_facts.length}
+              {report.overview_facts.length ? "Facts" : "Evidence"} · {report.overview_facts.length + (report.research_highlights?.length || 0)}
             </button>
             <button
               className={tab === "ledger" ? "active" : ""}
@@ -404,9 +416,9 @@ export default function ResearchScreen() {
           {tab === "facts" && (
             <section className="panel">
               <div className="panel-header">
-                <span className="panel-title">Verified financial facts</span>
+                <span className="panel-title">Financial evidence</span>
               </div>
-              {report.overview_facts.length === 0 ? (
+              {report.overview_facts.length === 0 && !report.research_highlights?.length ? (
                 <div className="empty-state">
                   <h3>No verified page facts yet</h3>
                   <p>
@@ -414,7 +426,8 @@ export default function ResearchScreen() {
                   </p>
                 </div>
               ) : (
-                report.overview_facts.map((fact) => (
+                <>
+                {report.overview_facts.map((fact) => (
                   <article className="event-card" key={fact.evidence_id}>
                     <div className="event-meta">
                       <strong>{fact.label}</strong>
@@ -428,7 +441,15 @@ export default function ResearchScreen() {
                       </button>
                     </div>
                   </article>
-                ))
+                ))}
+                {report.research_highlights?.map((item) => (
+                  <article className="event-card" key={item.evidence_id}>
+                    <div className="event-meta"><strong>{item.label} · verbatim</strong><span>PDF page {item.page}</span></div>
+                    <p>{item.excerpt}</p>
+                    <div className="event-actions"><span /><button className="button secondary" onClick={() => setEvidenceId(item.evidence_id)}>Inspect evidence</button></div>
+                  </article>
+                ))}
+                </>
               )}
             </section>
           )}
