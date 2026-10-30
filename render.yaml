@@ -3,7 +3,8 @@ services:
     name: finn-investment-agent
     runtime: docker
     plan: free
-    autoDeploy: true
+    branch: master
+    autoDeployTrigger: commit
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health/live
