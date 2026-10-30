@@ -175,5 +175,18 @@ class TestGeneralizationAndHeldOutEvaluation(unittest.TestCase):
             self.assertEqual(evidence.status_code, 200)
             self.assertEqual(evidence.json()["data"]["pdf_page_1based"], page)
 
+    def test_comparison_requires_cited_excerpts_for_both_companies(self):
+        response = self.client.post("/api/v1/research/TCS/ask", json={
+            "question": "Compare TCS and Infosys revenue"
+        })
+        self.assertEqual(response.status_code, 200)
+        answer = response.json()
+        self.assertIn("TCS:", answer["answer"])
+        self.assertIn("INFY:", answer["answer"])
+        self.assertEqual(len(answer["evidence_citations"]), 2)
+        for citation in answer["evidence_citations"]:
+            evidence = self.client.get(f"/api/v1/evidence/{citation['evidence_id']}")
+            self.assertEqual(evidence.status_code, 200)
+
 if __name__ == "__main__":
     unittest.main()

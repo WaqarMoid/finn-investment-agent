@@ -4,6 +4,7 @@ Provides grounded corporate profiles, 4-quarter ledgers, and bounded Q&A.
 
 import os
 import time
+import re
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Depends
@@ -84,6 +85,37 @@ def ask_company_question(query: str, payload: QuestionRequest) -> Dict[str, Any]
     conn = get_connection()
     try:
         engine, _ = _prepare(conn, query)
+        if re.search(r"\b(?:compare|versus|vs\.?|against)\b", payload.question, re.I):
+            companies = [engine.resolve_company(query)["company"]]
+            for token in re.findall(r"\b[A-Za-z][A-Za-z0-9&-]{2,}\b", payload.question):
+                match = engine.resolve_company(token)
+                if match and match.get("status") == "resolved":
+                    company = match["company"]
+                    if all(company["id"] != prior["id"] for prior in companies):
+                        companies.append(company)
+                if len(companies) >= 2:
+                    break
+            if len(companies) >= 2:
+                second = companies[1]
+                _prepare(conn, second["symbol"])
+                focus = payload.question
+                for company in companies:
+                    focus = re.sub(rf"\b{re.escape(company['symbol'])}\b", "", focus, flags=re.I)
+                focus = re.sub(r"\b(?:compare|versus|vs|against|and)\b", "", focus, flags=re.I).strip()
+                answers = [engine.answer_bounded_question(company["symbol"], focus or payload.question)
+                           for company in companies]
+                if all(answer.get("evidence_citations") for answer in answers):
+                    return {"question": payload.question,
+                            "answer": "\n\n".join(f"{company['symbol']}: {answer['answer']}"
+                                                   for company, answer in zip(companies, answers)),
+                            "evidence_citations": [{**citation, "label": f"{company['symbol']} · {citation['label']}"}
+                                                   for company, answer in zip(companies, answers)
+                                                   for citation in answer["evidence_citations"]],
+                            "limitation": "Side-by-side source excerpts; reporting periods and units may differ. No numerical comparison is inferred."}
+                return {"question": payload.question,
+                        "answer": "Comparable cited evidence is not indexed for both issuers yet.",
+                        "evidence_citations": [],
+                        "limitation": "Refresh each issuer's NSE filings and try a narrower metric question."}
         res = engine.answer_bounded_question(query, payload.question)
         if "error" in res and res["error"] == "COMPANY_NOT_FOUND":
             raise HTTPException(status_code=404, detail=res["message"])
