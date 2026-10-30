@@ -8,13 +8,14 @@ import csv
 import io
 import os
 import re
-from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
+from datetime import datetime, timedelta, timezone
 
 import httpx
 
 from finn.db.repository import FinnRepository
 from finn.extraction.pdf_parser import parse_pdf
+from finn.extraction.url_validator import validate_url_ssrf_safe
 from finn.retrieval.indexer import DocumentIndexer
 
 
@@ -69,6 +70,8 @@ def sync_nse_master(conn, client=None):
 
 def _filing_type(subject, text):
     combined = f"{subject} {text}".lower()
+    if any(term in subject.lower() for term in ("newspaper", "schedule of", "link of recording")):
+        return None
     if "transcript" in combined or "concall transcript" in combined:
         return "earnings_transcript"
     if "financial result" in combined or "quarterly result" in combined:
@@ -78,16 +81,22 @@ def _filing_type(subject, text):
     return None
 
 
-def _allowed_pdf_url(url):
+def _allowed_pdf_url(url, verified_domains=()):
     parsed = urlparse(url)
-    return (parsed.scheme == "https" and parsed.hostname in {
-        "nsearchives.nseindia.com", "archives.nseindia.com",
-    } and parsed.path.lower().endswith(".pdf"))
+    host = (parsed.hostname or "").lower()
+    allowed = {"nsearchives.nseindia.com", "archives.nseindia.com"}
+    issuer_host = any(host == domain.lower() or host.endswith("." + domain.lower())
+                      for domain in verified_domains)
+    return parsed.scheme == "https" and (host in allowed or issuer_host) and parsed.path.lower().endswith(".pdf")
 
 
-def _download_pdf(client, url):
-    if not _allowed_pdf_url(url):
-        raise ValueError("Filing URL is outside official NSE archives")
+def _download_pdf(client, url, verified_domains=()):
+    if not _allowed_pdf_url(url, verified_domains):
+        raise ValueError("Filing URL is outside NSE archives or verified issuer domains")
+    if urlparse(url).hostname not in {"nsearchives.nseindia.com", "archives.nseindia.com"}:
+        safe, reason = validate_url_ssrf_safe(url)
+        if not safe:
+            raise ValueError(reason)
     with client.stream("GET", url, follow_redirects=False, timeout=30) as response:
         response.raise_for_status()
         if response.headers.get("content-length") and int(response.headers["content-length"]) > MAX_PDF_BYTES:
@@ -99,6 +108,24 @@ def _download_pdf(client, url):
                 raise ValueError("Filing exceeds the 20 MB ingestion limit")
             parts.append(part)
     return b"".join(parts)
+
+
+def _linked_issuer_pdf(content, verified_domains):
+    """Read a PDF hyperlink from a short NSE transcript notice, if issuer-owned."""
+    from pypdf import PdfReader
+    try:
+        reader = PdfReader(io.BytesIO(content))
+        for page in reader.pages[:2]:
+            for annotation in page.get("/Annots", []):
+                action = annotation.get_object().get("/A")
+                url = str(action.get("/URI", "")) if action else ""
+                if _allowed_pdf_url(url, verified_domains) and urlparse(url).hostname not in {
+                    "nsearchives.nseindia.com", "archives.nseindia.com",
+                }:
+                    return url
+    except (ValueError, KeyError, TypeError):
+        pass
+    return None
 
 
 def refresh_company_sources(conn, company, client=None, max_documents=4):
@@ -148,11 +175,19 @@ def refresh_company_sources(conn, company, client=None, max_documents=4):
             if conn.execute("SELECT 1 FROM source_documents WHERE company_id = ? AND source_url = ? AND page_count > 0", (company_id, url)).fetchone():
                 continue
             try:
-                parsed = parse_pdf(_download_pdf(client, url))
+                content = _download_pdf(client, url)
+                parsed = parse_pdf(content)
+                publisher = "NSE issuer filing"
+                if source_type == "earnings_transcript" and parsed.page_count <= 2:
+                    linked = _linked_issuer_pdf(content, company.get("verified_ir_domains", []))
+                    if linked:
+                        linked_parsed = parse_pdf(_download_pdf(client, linked, company["verified_ir_domains"]))
+                        if linked_parsed.status == "verified" and linked_parsed.page_count > parsed.page_count:
+                            parsed, url, publisher = linked_parsed, linked, "Issuer IR linked from NSE filing"
                 if parsed.status != "verified":
                     raise ValueError(parsed.error_message or parsed.status)
                 doc_id = f"nse-{parsed.sha256[:24]}"
-                repo.store_source_document(doc_id, company_id, source_type, "NSE issuer filing", url,
+                repo.store_source_document(doc_id, company_id, source_type, publisher, url,
                                            parsed.sha256, parsed.file_size_bytes, parsed.page_count,
                                            str(published), fiscal_period, local_path=url)
                 DocumentIndexer(conn).index_document(doc_id, company_id, parsed.pages)

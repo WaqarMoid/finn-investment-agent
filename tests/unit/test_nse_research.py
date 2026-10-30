@@ -51,8 +51,11 @@ class TestNSEResearch(unittest.TestCase):
         self.assertTrue(_allowed_pdf_url("https://nsearchives.nseindia.com/corporate/example.pdf"))
         self.assertFalse(_allowed_pdf_url("https://other.example/corporate/example.pdf"))
         self.assertFalse(_allowed_pdf_url("http://nsearchives.nseindia.com/corporate/example.pdf"))
+        self.assertTrue(_allowed_pdf_url("https://investors.coforge.com/report.pdf", ["coforge.com"]))
+        self.assertFalse(_allowed_pdf_url("https://coforge.com.attacker.example/report.pdf", ["coforge.com"]))
         self.assertEqual(_filing_type("Analyst Meet", "Earnings Call Transcript"), "earnings_transcript")
         self.assertIsNone(_filing_type("Trading Window", "Closure notice"))
+        self.assertIsNone(_filing_type("Copy of Newspaper Publication", "financial results"))
 
 
 if __name__ == "__main__":
