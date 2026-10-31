@@ -53,30 +53,43 @@ class ResearchEngine:
         return self.resolver.resolve(query)
 
     def _fetch_company_financials(self, clean_symbol: str, provider_sym: Optional[str] = None) -> Dict[str, Any]:
-        """Fetch live fundamentals and financials from market API."""
-        import yfinance as yf
-        candidates = []
-        if provider_sym:
-            candidates.append(provider_sym)
-        candidates.extend([f"{clean_symbol}.NS", f"{clean_symbol}.BO"])
-        # Dedup preserving order
-        seen = set()
-        cand_list = [c for c in candidates if c and not (c in seen or seen.add(c))][:2]
+        """Fetch live fundamentals and financials from market API with fast timeout."""
+        import concurrent.futures
+        import httpx
+
         info: Dict[str, Any] = {}
+        target_sym = provider_sym or f"{clean_symbol}.NS"
+
+        # 1. Fast chart metadata (never rate-limited, ~200ms)
+        try:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            r = httpx.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{target_sym}?interval=1d&range=1mo", headers=headers, timeout=2.5)
+            if r.status_code == 200:
+                meta = r.json().get("chart", {}).get("result", [{}])[0].get("meta", {})
+                if meta:
+                    info["shortName"] = meta.get("shortName")
+                    info["regularMarketPrice"] = meta.get("regularMarketPrice")
+                    info["currency"] = meta.get("currency")
+        except Exception:
+            pass
+
+        # 2. Deep fundamentals with strict 3.0s timeout to prevent thread stalling on cloud 429 backoff
+        def _get_yf():
+            import yfinance as yf
+            t = yf.Ticker(target_sym)
+            return t.info, getattr(t, "quarterly_financials", None)
+
         qf = None
-        for sym_cand in cand_list:
-            try:
-                t = yf.Ticker(sym_cand)
-                t_info = t.info
-                if t_info and (t_info.get("longName") or t_info.get("shortName") or t_info.get("totalRevenue") or t_info.get("regularMarketPrice")):
-                    info = t_info
-                    try:
-                        qf = t.quarterly_financials
-                    except Exception:
-                        pass
-                    break
-            except Exception:
-                continue
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                fut = ex.submit(_get_yf)
+                yf_info, yf_qf = fut.result(timeout=3.0)
+                if yf_info and isinstance(yf_info, dict):
+                    info.update(yf_info)
+                qf = yf_qf
+        except Exception:
+            pass
+
         return {"info": info, "quarterly_financials": qf}
 
     def _ensure_live_evidence_and_modules(self, company_id: str, symbol: str, match: Dict[str, Any]) -> Dict[str, Any]:
