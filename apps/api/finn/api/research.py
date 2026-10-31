@@ -41,15 +41,12 @@ def _prepare(conn, query, force=False):
     if not resolved or resolved.get("status") != "resolved":
         raise HTTPException(status_code=404, detail=f"No NSE-listed company matched '{query}'.")
     company = resolved["company"]
-    has_pages = conn.execute(
-        "SELECT 1 FROM source_documents WHERE company_id = ? AND page_count > 0 LIMIT 1",
-        (company["id"],),
-    ).fetchone()
     refresh = None
-    last_attempt = _AUTO_ATTEMPTS.get(company["id"], 0)
-    if _live_research_enabled() and (force or (not has_pages and time.monotonic() - last_attempt > 300)):
-        _AUTO_ATTEMPTS[company["id"]] = time.monotonic()
-        refresh = refresh_company_sources(conn, company)
+    if _live_research_enabled() and force:
+        last_attempt = _AUTO_ATTEMPTS.get(company["id"], 0)
+        if time.monotonic() - last_attempt > 300:
+            _AUTO_ATTEMPTS[company["id"]] = time.monotonic()
+            refresh = refresh_company_sources(conn, company)
     return engine, refresh
 
 @router.get("/{query}")
