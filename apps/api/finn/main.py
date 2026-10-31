@@ -74,6 +74,10 @@ app.add_middleware(
 # Session isolation middleware
 @app.middleware("http")
 async def session_middleware(request: Request, call_next):
+    # Health checks and static assets bypass session database writes
+    if request.url.path.startswith("/api/v1/health") or request.url.path.startswith("/assets") or request.url.path == "/favicon.ico":
+        return await call_next(request)
+
     # Ensure every user session has an isolated anonymous session ID cookie
     session_id = request.cookies.get("finn_session_id")
     is_new = False

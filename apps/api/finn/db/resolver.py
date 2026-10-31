@@ -113,7 +113,7 @@ class CompanyResolver:
         try:
             import httpx
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-            r = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={query}", headers=headers, timeout=6.0)
+            r = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={query}", headers=headers, timeout=2.5)
             if r.status_code == 200:
                 data = r.json()
                 quotes = [
@@ -122,7 +122,7 @@ class CompanyResolver:
                 ]
                 if not quotes and normalized_sym:
                     # Try searching for exact symbol or spaced name
-                    r_sym = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={normalized_sym}.NS", headers=headers, timeout=5.0)
+                    r_sym = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={normalized_sym}.NS", headers=headers, timeout=2.5)
                     if r_sym.status_code == 200:
                         quotes = [
                             q for q in r_sym.json().get("quotes", [])
@@ -132,7 +132,7 @@ class CompanyResolver:
                     # Try title-case / spaced name e.g. TATAMOTORS -> Tata Motors
                     alt = query.replace("MOTORS", " Motors").replace("TECH", " Tech").replace("BANK", " Bank").replace("FINANCE", " Finance").title()
                     if alt != query:
-                        r_alt = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={alt}", headers=headers, timeout=5.0)
+                        r_alt = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={alt}", headers=headers, timeout=2.5)
                         if r_alt.status_code == 200:
                             quotes = [
                                 q for q in r_alt.json().get("quotes", [])

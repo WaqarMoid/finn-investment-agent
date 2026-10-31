@@ -198,6 +198,7 @@ class ResearchEngine:
             self.repo.store_evidence_span(ev_pat_id, p1_id, page1_content.find(_fmt_cr(net_profit_val)), page1_content.find(_fmt_cr(net_profit_val)) + len(_fmt_cr(net_profit_val)), f"Profit After Tax (PAT) reported at {_fmt_cr(net_profit_val)}")
             self.repo.store_evidence_span(ev_fcf_id, p1_id, page1_content.find(_fmt_cr(fcf_val)), page1_content.find(_fmt_cr(fcf_val)) + len(_fmt_cr(fcf_val)), f"Free Cash Flow delivered at {_fmt_cr(fcf_val)}")
             self.repo.store_evidence_span(ev_guidance_id, p2_id, 0, len(page2_content), page2_content[:260])
+            self.conn.commit()
         else:
             # For verified seeded fixture companies, link to existing verified evidence spans
             ev_rev_id = f"ev-src-{clean_symbol.lower()}-revenue"
