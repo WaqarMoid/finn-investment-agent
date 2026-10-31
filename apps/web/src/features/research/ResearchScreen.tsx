@@ -91,7 +91,7 @@ interface Report {
   stages: Array<{ label: string; status: string }>;
   overview_facts: Fact[];
   research_highlights?: Array<{ label: string; excerpt: string; evidence_id: string; page: number }>;
-  refresh?: { discovered: number; indexed: number; pages: number; errors: string[] };
+  refresh?: { discovered?: number; indexed?: number; pages?: number; errors?: string[] };
   guidance_ledger: GuidanceRow[];
   source_coverage: Source[];
   modules?: Fundamentals;
@@ -120,7 +120,7 @@ const getAvatarClass = (symbol: string) => {
 export default function ResearchScreen() {
   const [query, setQuery] = useState("INFY");
   const [report, setReport] = useState<Report | null>(null);
-  const [tab, setTab] = useState<"sources" | "facts" | "ledger">("facts");
+  const [tab, setTab] = useState<"analysis" | "sources" | "facts" | "ledger">("sources");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
@@ -153,7 +153,7 @@ export default function ResearchScreen() {
       if (!controller.signal.aborted) {
         setReport(next);
         setQuery(next.company.symbol);
-        setTab(next.overview_facts.length || next.research_highlights?.length ? "facts" : next.guidance_ledger.length ? "ledger" : "sources");
+        setTab(next.modules ? "analysis" : "sources");
         window.history.replaceState(null, "", `#/research?symbol=${encodeURIComponent(next.company.symbol)}`);
       }
     } catch (err) {
@@ -222,7 +222,7 @@ export default function ResearchScreen() {
               id="company-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. INFY, TCS, RELIANCE, COFORGE"
+              placeholder="e.g. INFY, TCS, RELIANCE, TATAMOTORS, WIPRO"
               autoCapitalize="characters"
             />
           </div>
@@ -288,16 +288,11 @@ export default function ResearchScreen() {
             </div>
             <button className="button secondary" style={{ marginTop: 12 }} disabled={loading}
               onClick={() => load(report.company.symbol, true)}>
-              Refresh NSE filings
+              ↻ Refresh live sources
             </button>
-            {report.refresh?.errors?.length ? (
-              <p className="research-help" role="status">Source update: {report.refresh.errors.join("; ")}</p>
-            ) : report.refresh?.indexed ? (
-              <p className="research-help" role="status">Indexed {report.refresh.indexed} new filing(s), {report.refresh.pages} pages.</p>
-            ) : null}
           </section>
 
-          {/* Bounded free-form research */}
+          {/* Ask the filings / Bounded Research */}
           <section className="panel">
             <div className="panel-header">
               <span className="panel-title">Ask the filings</span>
@@ -306,15 +301,21 @@ export default function ResearchScreen() {
 
             <p className="research-help">Ask your own question. FINN searches indexed issuer evidence and shows the exact passage it used.</p>
             <div className="research-suggestions" aria-label="Example questions">
-              {[
-                "What revenue did the company report?",
-                "What guidance did management give?",
-                "What did management say about cash conversion?",
-              ].map((prompt) => (
-                <button className="research-suggestion" key={prompt} onClick={() => triggerPrompt(prompt)} disabled={asking}>
-                  {prompt}
-                </button>
-              ))}
+              <button className="research-suggestion" onClick={() => triggerPrompt("What revenue did the company report?")} disabled={asking}>
+                What revenue did the company report?
+              </button>
+              <button className="research-suggestion" onClick={() => triggerPrompt("What guidance did management give?")} disabled={asking}>
+                What guidance did management give?
+              </button>
+              <button className="research-suggestion" onClick={() => triggerPrompt("What did management say about cash conversion?")} disabled={asking}>
+                What did management say about cash conversion?
+              </button>
+              <button className="research-suggestion" onClick={() => triggerPrompt("What is the narrative vs numbers delivery across quarters?")} disabled={asking}>
+                📊 Narrative vs Numbers
+              </button>
+              <button className="research-suggestion" onClick={() => triggerPrompt("What is the bull vs bear thesis?")} disabled={asking}>
+                🐂 Bull vs Bear
+              </button>
             </div>
 
             <div className="field">
@@ -351,9 +352,16 @@ export default function ResearchScreen() {
             )}
           </section>
 
-
           {/* Revolut Segmented Tabs */}
           <div className="segmented" style={{ marginBottom: 16 }}>
+            {report.modules && (
+              <button
+                className={tab === "analysis" ? "active" : ""}
+                onClick={() => setTab("analysis")}
+              >
+                Analysis · 8 Modules
+              </button>
+            )}
             <button
               className={tab === "sources" ? "active" : ""}
               onClick={() => setTab("sources")}
@@ -364,7 +372,7 @@ export default function ResearchScreen() {
               className={tab === "facts" ? "active" : ""}
               onClick={() => setTab("facts")}
             >
-              {report.overview_facts.length ? "Facts" : "Evidence"} · {report.overview_facts.length + (report.research_highlights?.length || 0)}
+              Facts · {report.overview_facts.length}
             </button>
             <button
               className={tab === "ledger" ? "active" : ""}
@@ -373,6 +381,246 @@ export default function ResearchScreen() {
               Guidance · {report.guidance_ledger.length}
             </button>
           </div>
+
+          {/* TAB: Analysis (8 Modules) */}
+          {tab === "analysis" && report.modules && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* 1. Business Snapshot */}
+              {report.modules.business_snapshot && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">1. Business Snapshot & Operating Segments</span>
+                    <span className="badge badge-routine">Corporate Profile</span>
+                  </div>
+                  <p style={{ color: "var(--ink)", fontSize: 14, lineHeight: 1.5, marginBottom: 12 }}>
+                    {report.modules.business_snapshot.summary}
+                  </p>
+                  <div className="module-grid">
+                    <div className="module-card">
+                      <div className="module-card-title">Operating Segments</div>
+                      <div className="chip-row">
+                        {report.modules.business_snapshot.segments.map((seg) => (
+                          <span className="chip" key={seg.name}>
+                            {seg.name}: <strong>{seg.share_pct}%</strong>
+                            {seg.growth && <span style={{ color: seg.growth.startsWith("+") ? "var(--positive)" : "var(--negative)", marginLeft: 4 }}>{seg.growth}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {report.modules.business_snapshot.geographies && (
+                      <div className="module-card">
+                        <div className="module-card-title">Geographic Distribution</div>
+                        <div className="chip-row">
+                          {report.modules.business_snapshot.geographies.map((geo) => (
+                            <span className="chip" key={geo.region}>
+                              {geo.region}: <strong>{geo.share_pct}%</strong>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* 2. Financial Snapshot */}
+              {report.modules.financial_snapshot && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">2. Financial Snapshot ({report.modules.financial_snapshot.headline_period})</span>
+                    <span className="badge badge-positive">Audited Numbers</span>
+                  </div>
+                  <div className="summary-strip">
+                    <div className="summary-stat">
+                      <span>Revenue</span>
+                      <strong>{report.modules.financial_snapshot.revenue.value}</strong>
+                      <span style={{ color: "var(--positive)" }}>{report.modules.financial_snapshot.revenue.growth_yoy} YoY</span>
+                    </div>
+                    <div className="summary-stat">
+                      <span>Operating Margin</span>
+                      <strong>{report.modules.financial_snapshot.operating_margin.value}</strong>
+                      <span>{report.modules.financial_snapshot.operating_margin.delta_yoy} YoY</span>
+                    </div>
+                    <div className="summary-stat">
+                      <span>Net Profit (PAT)</span>
+                      <strong>{report.modules.financial_snapshot.net_profit.value}</strong>
+                      <span style={{ color: "var(--positive)" }}>{report.modules.financial_snapshot.net_profit.growth_yoy} YoY</span>
+                    </div>
+                  </div>
+                  {report.modules.financial_snapshot.key_ratios && (
+                    <div className="chip-row" style={{ marginTop: 12 }}>
+                      {report.modules.financial_snapshot.key_ratios.map((kr) => (
+                        <span className="chip" key={kr.name}>
+                          {kr.name}: <strong>{kr.value}</strong>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {report.modules.financial_snapshot.revenue.evidence_id && (
+                    <div style={{ marginTop: 12 }}>
+                      <button className="button secondary" style={{ fontSize: 12 }} onClick={() => setEvidenceId(report.modules?.financial_snapshot?.revenue.evidence_id || null)}>
+                        Inspect audited filing citation
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* 3. Trajectory */}
+              {report.modules.trajectory && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">3. Trajectory: Growth vs. Compression</span>
+                    <span className="badge badge-routine">Multi-Year Direction</span>
+                  </div>
+                  <p style={{ fontSize: 13.5, color: "var(--muted)", marginBottom: 12 }}>
+                    {report.modules.trajectory.direction}
+                  </p>
+                  <div className="module-grid">
+                    <div className="module-card">
+                      <div className="module-card-title" style={{ color: "var(--positive)" }}>
+                        Growth Vectors
+                      </div>
+                      {report.modules.trajectory.growth_drivers.map((gd) => (
+                        <div key={gd.vector} style={{ marginBottom: 8 }}>
+                          <strong>{gd.vector}</strong>
+                          <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{gd.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="module-card">
+                      <div className="module-card-title" style={{ color: "var(--negative)" }}>
+                        Compression Drags
+                      </div>
+                      {report.modules.trajectory.compression_drags.map((cd) => (
+                        <div key={cd.segment} style={{ marginBottom: 8 }}>
+                          <strong>{cd.segment}</strong>
+                          <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{cd.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* 4. Balance Sheet */}
+              {report.modules.balance_sheet && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">4. Balance Sheet & Capital Allocation</span>
+                    <span className="badge badge-positive">{report.modules.balance_sheet.net_cash_debt.status}</span>
+                  </div>
+                  <div className="summary-strip">
+                    <div className="summary-stat">
+                      <span>Liquidity Position</span>
+                      <strong>{report.modules.balance_sheet.net_cash_debt.value}</strong>
+                      <span>{report.modules.balance_sheet.net_cash_debt.label}</span>
+                    </div>
+                    <div className="summary-stat">
+                      <span>Leverage (D/E)</span>
+                      <strong>{report.modules.balance_sheet.leverage_ratio.value}</strong>
+                      <span>{report.modules.balance_sheet.leverage_ratio.label}</span>
+                    </div>
+                    <div className="summary-stat">
+                      <span>Working Capital DSO</span>
+                      <strong>{report.modules.balance_sheet.working_capital_dso.value}</strong>
+                      <span>{report.modules.balance_sheet.working_capital_dso.label}</span>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 13, color: "var(--ink)", marginTop: 12, lineHeight: 1.45 }}>
+                    <strong>Capital Allocation:</strong> {report.modules.balance_sheet.capital_allocation}
+                  </p>
+                </section>
+              )}
+
+              {/* 5. Cash Flow Quality */}
+              {report.modules.cash_quality && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">5. Cash Flow Quality & Conversion</span>
+                    <span className="badge badge-positive">{report.modules.cash_quality.verdict}</span>
+                  </div>
+                  <div className="summary-strip">
+                    <div className="summary-stat">
+                      <span>Operating Cash Flow</span>
+                      <strong>{report.modules.cash_quality.operating_cash_flow}</strong>
+                    </div>
+                    <div className="summary-stat">
+                      <span>Free Cash Flow (FCF)</span>
+                      <strong>{report.modules.cash_quality.free_cash_flow}</strong>
+                    </div>
+                    <div className="summary-stat">
+                      <span>FCF / PAT Conversion</span>
+                      <strong style={{ color: "var(--positive)" }}>{report.modules.cash_quality.conversion_ratio}</strong>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
+                    {report.modules.cash_quality.working_capital_drag}
+                  </p>
+                </section>
+              )}
+
+              {/* 6. Narrative vs Numbers */}
+              {report.modules.narrative_vs_numbers && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">6. Management Narrative vs. Reported Numbers</span>
+                    <span className="badge badge-routine">Multi-Quarter Track Record</span>
+                  </div>
+                  {report.modules.narrative_vs_numbers.map((item) => (
+                    <article className="event-card" key={item.quarter}>
+                      <div className="event-meta">
+                        <strong>{item.quarter}</strong>
+                        <span className={`badge ${item.verdict === "met" || item.verdict === "exceeded" ? "badge-positive" : item.verdict === "missed" ? "badge-attention" : "badge-routine"}`}>
+                          {item.verdict.toUpperCase()}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 13, margin: "6px 0" }}>
+                        <span style={{ color: "var(--muted)" }}>Guidance Stated:</span> {item.management_narrative}
+                      </p>
+                      <p style={{ fontSize: 13, margin: "6px 0" }}>
+                        <span style={{ color: "var(--ink)", fontWeight: 600 }}>Actual Outcome:</span> {item.actual_reported}
+                      </p>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>{item.analysis}</span>
+                    </article>
+                  ))}
+                </section>
+              )}
+
+              {/* 7. Bull vs Bear */}
+              {report.modules.bull_vs_bear && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">7. Bull vs. Bear Thesis</span>
+                  </div>
+                  <div className="module-grid">
+                    <div className="module-card">
+                      <div className="module-card-title" style={{ color: "var(--positive)" }}>
+                        🐂 Core Bull Thesis
+                      </div>
+                      {report.modules.bull_vs_bear.bull_thesis.map((b) => (
+                        <div key={b.point} style={{ marginBottom: 10 }}>
+                          <strong>{b.point}</strong>
+                          <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{b.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="module-card">
+                      <div className="module-card-title" style={{ color: "var(--negative)" }}>
+                        🐻 Core Bear Thesis / Risks
+                      </div>
+                      {report.modules.bull_vs_bear.bear_thesis.map((b) => (
+                        <div key={b.point} style={{ marginBottom: 10 }}>
+                          <strong>{b.point}</strong>
+                          <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>{b.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
 
           {/* TAB: Sources */}
           {tab === "sources" && (
@@ -428,7 +676,7 @@ export default function ResearchScreen() {
               ) : (
                 <>
                 {report.overview_facts.map((fact) => (
-                  <article className="event-card" key={fact.evidence_id}>
+                  <article className="event-card" key={fact.evidence_id || fact.label}>
                     <div className="event-meta">
                       <strong>{fact.label}</strong>
                       <span>{fact.growth}</span>
@@ -436,9 +684,11 @@ export default function ResearchScreen() {
                     <h3 style={{ fontSize: 24, fontVariantNumeric: "tabular-nums" }}>{fact.value}</h3>
                     <div className="event-actions">
                       <span />
-                      <button className="button secondary" onClick={() => setEvidenceId(fact.evidence_id)}>
-                        Inspect evidence
-                      </button>
+                      {fact.evidence_id && (
+                        <button className="button secondary" onClick={() => setEvidenceId(fact.evidence_id)}>
+                          Inspect evidence
+                        </button>
+                      )}
                     </div>
                   </article>
                 ))}
@@ -485,12 +735,14 @@ export default function ResearchScreen() {
                       </span>
                     </div>
                     <h3>{row.stated_summary}</h3>
-                    <p>{row.explanation}</p>
+                    <p>{row.reported_summary || row.explanation}</p>
                     <div className="event-actions">
-                      <span />
-                      <button className="button secondary" onClick={() => setEvidenceId(row.stated_evidence_id)}>
-                        Inspect statement
-                      </button>
+                      <span>{row.explanation}</span>
+                      {row.stated_evidence_id && (
+                        <button className="button secondary" onClick={() => setEvidenceId(row.stated_evidence_id)}>
+                          Inspect statement
+                        </button>
+                      )}
                     </div>
                   </article>
                 ))

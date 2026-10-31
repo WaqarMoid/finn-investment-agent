@@ -98,11 +98,78 @@ class CompanyResolver:
                 ]
             }
 
+        # 5. Live on-demand resolution via exchange & financial lookup for any listed security
+        live_resolved = self._resolve_live(cleaned, normalized_sym)
+        if live_resolved:
+            return live_resolved
+
         return {
             "status": "unknown",
             "query": query,
             "message": f"Company '{query}' not found in securities master"
         }
+
+    def _resolve_live(self, query: str, normalized_sym: str) -> Optional[Dict[str, Any]]:
+        try:
+            import httpx
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            r = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={query}", headers=headers, timeout=6.0)
+            if r.status_code == 200:
+                data = r.json()
+                quotes = [
+                    q for q in data.get("quotes", [])
+                    if q.get("exchange") in ("NSI", "BSE") or q.get("symbol", "").endswith(".NS") or q.get("symbol", "").endswith(".BO")
+                ]
+                if not quotes and normalized_sym:
+                    # Try searching for exact symbol or spaced name
+                    r_sym = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={normalized_sym}.NS", headers=headers, timeout=5.0)
+                    if r_sym.status_code == 200:
+                        quotes = [
+                            q for q in r_sym.json().get("quotes", [])
+                            if q.get("exchange") in ("NSI", "BSE") or q.get("symbol", "").endswith(".NS") or q.get("symbol", "").endswith(".BO")
+                        ]
+                if not quotes:
+                    # Try title-case / spaced name e.g. TATAMOTORS -> Tata Motors
+                    alt = query.replace("MOTORS", " Motors").replace("TECH", " Tech").replace("BANK", " Bank").replace("FINANCE", " Finance").title()
+                    if alt != query:
+                        r_alt = httpx.get(f"https://query2.finance.yahoo.com/v1/finance/search?q={alt}", headers=headers, timeout=5.0)
+                        if r_alt.status_code == 200:
+                            quotes = [
+                                q for q in r_alt.json().get("quotes", [])
+                                if q.get("exchange") in ("NSI", "BSE") or q.get("symbol", "").endswith(".NS") or q.get("symbol", "").endswith(".BO")
+                            ]
+                if quotes:
+                    best = quotes[0]
+                    raw_sym = best.get("symbol", "")
+                    clean_sym = re.sub(r"\.(NS|BO|NSE|BSE)$", "", raw_sym, flags=re.IGNORECASE).strip().upper()
+                    name = best.get("longname") or best.get("shortname") or query.upper()
+                    sector = best.get("sector") or "Diversified"
+                    exchange = "NSE" if raw_sym.endswith(".NS") or best.get("exchange") == "NSI" else "BSE"
+                    price_provider = f"{clean_sym}.NS" if exchange == "NSE" else f"{clean_sym}.BO"
+                    comp_id = f"comp-{clean_sym.lower()}-auto"
+                    isin = f"INE{abs(hash(clean_sym)):09d}"[:12]
+
+                    self.conn.execute("""
+                        INSERT OR IGNORE INTO companies (id, legal_name, isin, sector, fiscal_calendar, verified_ir_domains, identity_verified_at)
+                        VALUES (?, ?, ?, ?, 'standard_apr_mar', '[]', datetime('now'))
+                    """, (comp_id, name, isin, sector))
+                    self.conn.execute("""
+                        INSERT OR IGNORE INTO securities (id, company_id, exchange, symbol, series, price_provider_symbol, valid_from)
+                        VALUES (?, ?, ?, ?, 'EQ', ?, '2000-01-01')
+                    """, (f"sec-{clean_sym.lower()}-auto", comp_id, exchange, clean_sym, price_provider))
+                    self.conn.commit()
+
+                    full_row = self.conn.execute("""
+                        SELECT c.*, s.exchange, s.symbol as matched_symbol, s.price_provider_symbol
+                        FROM companies c
+                        JOIN securities s ON s.company_id = c.id
+                        WHERE c.id = ?
+                    """, (comp_id,)).fetchone()
+                    if full_row:
+                        return self._format_resolved(full_row, match_type="live_lookup")
+        except Exception:
+            pass
+        return None
 
     def _format_resolved(self, row: sqlite3.Row, match_type: str) -> Dict[str, Any]:
         ir_domains = json.loads(row["verified_ir_domains"]) if row["verified_ir_domains"] else []

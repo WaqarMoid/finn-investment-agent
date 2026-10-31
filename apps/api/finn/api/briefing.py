@@ -67,6 +67,22 @@ def get_briefing(
             ORDER BY eg.score DESC, eg.event_date DESC
         """, (session_id, start_dt.isoformat(), end_dt.isoformat())).fetchall()
 
+        is_fallback_recent = False
+        if not event_rows:
+            # Fall back to latest watchlist filings when strict window has zero new filings
+            event_rows = conn.execute("""
+                SELECT eg.*, c.legal_name, s.symbol as nse_symbol,
+                       (SELECT count(*) FROM announcements a WHERE a.event_group_id = eg.id) as filings_count,
+                       (SELECT a.attachment_url FROM announcements a WHERE a.event_group_id = eg.id AND a.attachment_url IS NOT NULL LIMIT 1) as sample_attachment_url
+                FROM event_groups eg
+                JOIN companies c ON eg.company_id = c.id
+                LEFT JOIN securities s ON s.company_id = c.id AND s.exchange = 'NSE'
+                JOIN watchlist_members wm ON wm.company_id = eg.company_id AND wm.session_id = ?
+                ORDER BY eg.score DESC, eg.event_date DESC
+                LIMIT 30
+            """, (session_id,)).fetchall()
+            is_fallback_recent = True
+
         # Partition by tier
         needs_attention: List[Dict[str, Any]] = []
         worth_a_look: List[Dict[str, Any]] = []

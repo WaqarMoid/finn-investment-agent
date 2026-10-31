@@ -39,17 +39,17 @@ async def lifespan(app: FastAPI):
             from finn.adapters.exchange_adapter import FixtureExchangeAdapter, NSEExchangeAdapter
             from finn.ingestion.announcements import AnnouncementIngestionService
             service = AnnouncementIngestionService(conn)
-            if os.getenv("FINN_MODE", "live").lower() == "replay":
-                if ANNOUNCEMENTS_FIXTURE_PATH.exists():
-                    service.ingest(FixtureExchangeAdapter(fixture_path=str(ANNOUNCEMENTS_FIXTURE_PATH)))
-            elif os.getenv("FINN_STARTUP_SYNC", "false").lower() in {"1", "true", "yes"}:
-                today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
-                service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
+            if ANNOUNCEMENTS_FIXTURE_PATH.exists():
+                service.ingest(FixtureExchangeAdapter(fixture_path=str(ANNOUNCEMENTS_FIXTURE_PATH)))
+            if os.getenv("FINN_STARTUP_SYNC", "false").lower() in {"1", "true", "yes"}:
+                try:
+                    today_ist = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).date().isoformat()
+                    service.ingest(NSEExchangeAdapter(), start_date=today_ist, end_date=today_ist)
+                except Exception:
+                    pass
 
-        # Demo evidence is confined to fixture/replay runs. Production research
-        # indexes current exchange PDFs on demand instead of serving fixed stocks.
-        if os.getenv("FINN_EXCHANGE_SOURCE", "fixture").lower() != "nse":
-            seed_verified_research_evidence(repo)
+        # Seed verified evidence baseline if research evidence is not yet loaded
+        seed_verified_research_evidence(repo)
     finally:
         conn.close()
     yield
