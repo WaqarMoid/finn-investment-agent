@@ -55,12 +55,16 @@ class ResearchEngine:
     def _fetch_company_financials(self, clean_symbol: str, provider_sym: Optional[str] = None) -> Dict[str, Any]:
         """Fetch live fundamentals and financials from market API."""
         import yfinance as yf
-        candidates = [provider_sym, f"{clean_symbol}.NS", f"{clean_symbol}.BO", clean_symbol]
+        candidates = []
+        if provider_sym:
+            candidates.append(provider_sym)
+        candidates.extend([f"{clean_symbol}.NS", f"{clean_symbol}.BO"])
+        # Dedup preserving order
+        seen = set()
+        cand_list = [c for c in candidates if c and not (c in seen or seen.add(c))][:2]
         info: Dict[str, Any] = {}
         qf = None
-        for sym_cand in candidates:
-            if not sym_cand:
-                continue
+        for sym_cand in cand_list:
             try:
                 t = yf.Ticker(sym_cand)
                 t_info = t.info

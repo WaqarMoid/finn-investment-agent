@@ -32,7 +32,7 @@ MAX_PDF_BYTES = 20 * 1024 * 1024
 def sync_nse_master(conn, client=None):
     """Import the official EQ-series symbol master, preserving existing ISIN IDs."""
     owns_client = client is None
-    client = client or httpx.Client(timeout=15, headers=HEADERS)
+    client = client or httpx.Client(timeout=3.0, headers=HEADERS)
     try:
         response = client.get(MASTER_URL)
         response.raise_for_status()
@@ -131,7 +131,7 @@ def _linked_issuer_pdf(content, verified_domains):
 def refresh_company_sources(conn, company, client=None, max_documents=4):
     """Fetch recent official filings; return honest counts and upstream errors."""
     owns_client = client is None
-    client = client or httpx.Client(headers=HEADERS, timeout=18)
+    client = client or httpx.Client(headers=HEADERS, timeout=3.0)
     symbol = company["symbol"].upper().replace(".NS", "")
     company_id = company["id"]
     result = {"symbol": symbol, "discovered": 0, "indexed": 0, "pages": 0, "errors": []}
