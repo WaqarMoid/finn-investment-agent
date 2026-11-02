@@ -743,11 +743,11 @@ class ResearchEngine:
                 anns = self.conn.execute(
                     """SELECT a.id, a.published_at_utc, a.original_title, a.category, a.subtype, a.attachment_url
                        FROM announcements a
-                       JOIN companies c ON c.id = a.company_id
-                       WHERE c.symbol = ? OR c.symbol LIKE ?
+                       LEFT JOIN securities s ON s.company_id = a.company_id
+                       WHERE a.company_id LIKE ? OR s.symbol = ? OR s.symbol LIKE ?
                        ORDER BY a.published_at_utc DESC
                        LIMIT 4""",
-                    (clean_symbol, f"{clean_symbol}%"),
+                    (f"%{clean_symbol.lower()}%", clean_symbol, f"{clean_symbol}%"),
                 ).fetchall()
 
             if anns:
