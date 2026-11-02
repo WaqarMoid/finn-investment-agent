@@ -42,8 +42,8 @@ class LLMClient:
     in-memory/DB caching, and token/cost instrumentation.
     """
 
-    def __init__(self, model_name: str = "gemini-2.5-flash-lite"):
-        self.model_name = model_name
+    def __init__(self, model_name: str = "gemini-1.5-flash"):
+        self.model_name = os.getenv("LLM_MODEL", model_name)
         self.pricing = MODEL_PRICING.get(model_name, MODEL_PRICING["default"])
         self.cache: Dict[str, Any] = {}
 
@@ -99,7 +99,7 @@ class LLMClient:
                 response = httpx.post(
                     f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent",
                     headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
-                    json=payload, timeout=35,
+                    json=payload, timeout=6.0,
                 )
                 response.raise_for_status()
                 body = response.json()

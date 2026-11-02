@@ -728,21 +728,7 @@ class ResearchEngine:
                 "limitation": "Scope policy: Ask about company news, revenue, profit, guidance, cash flow, margins, ratios, or exchange filings.",
             }
 
-        # 5. Optional LLM RAG Synthesis if API Key is configured
-        if os.getenv("GEMINI_API_KEY"):
-            llm_ans = self._answer_with_llm(company_id, question)
-            if llm_ans:
-                return llm_ans
-                return llm_ans
-
-        # 4. Comprehensive Structured Financial & Filing Domain RAG
-        report = self.build_report(symbol)
-        modules = report.get("modules") or {}
-        snapshot = modules.get("financial_snapshot") or {}
-        guidance_ledger = report.get("guidance_ledger") or []
-        facts = report.get("overview_facts") or []
-
-        # Intent A: News / Announcements / Latest Updates / Events
+        # Intent A: News / Announcements / Latest Updates / Events (Direct from exchange announcements ledger)
         if any(k in q_lower for k in ["news", "latest", "announcement", "announcements", "update", "updates", "filing", "filings", "recent", "event", "events"]):
             anns = self.conn.execute(
                 """SELECT id, published_at_utc, original_title, category, subtype, attachment_url
@@ -792,6 +778,19 @@ class ResearchEngine:
                 "evidence_citations": [{"citation_num": 1, "evidence_id": f"ev-{clean_symbol.lower()}-filing", "label": f"{company_name} · NSE Primary Source"}],
                 "limitation": "Live NSE regulatory filing records; open citation for primary source link.",
             }
+
+        # 5. Optional LLM RAG Synthesis if API Key is configured
+        if os.getenv("GEMINI_API_KEY"):
+            llm_ans = self._answer_with_llm(company_id, question)
+            if llm_ans:
+                return llm_ans
+
+        # 6. Comprehensive Structured Financial & Filing Domain RAG
+        report = self.build_report(symbol)
+        modules = report.get("modules") or {}
+        snapshot = modules.get("financial_snapshot") or {}
+        guidance_ledger = report.get("guidance_ledger") or []
+        facts = report.get("overview_facts") or []
 
         # Intent B: Revenue / Sales / Top-line / Turnover
         if any(k in q_lower for k in ["revenue", "sales", "turnover", "topline", "top line", "growth"]):
