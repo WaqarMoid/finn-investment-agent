@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
+import { apiUrl } from "../../api/baseUrl";
 
 interface WatchlistCompany {
   company_id: string;
@@ -52,12 +53,12 @@ export default function WatchlistScreen() {
   const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/v1/watchlist")
+    fetch(apiUrl("/api/v1/watchlist"))
       .then((res) => res.json())
       .then((json) => setCompanies(json.data || []))
       .catch(() => {});
 
-    fetch("/api/v1/notification-rules")
+    fetch(apiUrl("/api/v1/notification-rules"))
       .then((res) => res.json())
       .then((json) => {
         if (json.data) {
@@ -67,7 +68,7 @@ export default function WatchlistScreen() {
       })
       .catch(() => {});
 
-    fetch("/api/v1/alerts")
+    fetch(apiUrl("/api/v1/alerts"))
       .then((res) => res.json())
       .then((json) => setAlerts(json.data || []))
       .catch(() => {});
@@ -76,7 +77,7 @@ export default function WatchlistScreen() {
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/v1/notification-rules", {
+      const res = await fetch(apiUrl("/api/v1/notification-rules"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,7 +101,7 @@ export default function WatchlistScreen() {
     setPreviewLoading(true);
     setPreviewMatches(null);
     try {
-      const res = await fetch("/api/v1/notification-rules/preview", {
+      const res = await fetch(apiUrl("/api/v1/notification-rules/preview"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +120,7 @@ export default function WatchlistScreen() {
 
   const handleAcknowledge = async (alertId: string) => {
     try {
-      const res = await fetch(`/api/v1/alerts/${alertId}`, { method: "PATCH" });
+      const res = await fetch(apiUrl(`/api/v1/alerts/${alertId}`), { method: "PATCH" });
       if (res.ok) {
         setAlerts((prev) =>
           prev.map((a) => (a.id === alertId ? { ...a, acknowledged: true } : a))

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { apiUrl } from "../../api/baseUrl";
 
 type Preset = "24h" | "7d" | "custom";
 interface BriefingEvent {
@@ -101,13 +102,13 @@ export default function BriefingScreen() {
     try {
       if (sync) {
         setSyncing(true);
-        const syncResponse = await fetch(`/api/v1/refresh?start_date=${window.startDate}&end_date=${window.endDate}`, { method: "POST" });
+        const syncResponse = await fetch(apiUrl(`/api/v1/refresh?start_date=${window.startDate}&end_date=${window.endDate}`), { method: "POST" });
         if (!syncResponse.ok && syncResponse.status !== 429) {
           const detail = await syncResponse.json().catch(() => ({}));
           throw new Error(detail.detail || `Exchange sync failed (${syncResponse.status})`);
         }
       }
-      const response = await fetch(`/api/v1/briefing?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`);
+      const response = await fetch(apiUrl(`/api/v1/briefing?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`));
       if (!response.ok) throw new Error(`Briefing request failed (${response.status})`);
       const json = await response.json();
 
@@ -120,7 +121,7 @@ export default function BriefingScreen() {
         json.data.tiers.routine.length === 0
       ) {
         const w7 = getWindow("7d");
-        const resp7 = await fetch(`/api/v1/briefing?start=${encodeURIComponent(w7.start)}&end=${encodeURIComponent(w7.end)}`);
+        const resp7 = await fetch(apiUrl(`/api/v1/briefing?start=${encodeURIComponent(w7.start)}&end=${encodeURIComponent(w7.end)}`));
         if (resp7.ok) {
           const json7 = await resp7.json();
           if (

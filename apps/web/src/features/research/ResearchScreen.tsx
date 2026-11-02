@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import EvidenceDrawer from "../../components/evidence/EvidenceDrawer";
+import { apiUrl } from "../../api/baseUrl";
 
 interface GuidanceRow {
   target_period: string;
@@ -138,7 +139,7 @@ export default function ResearchScreen() {
     setReport(null);
     setAnswer(null);
     try {
-      const response = await fetch(`/api/v1/research/${encodeURIComponent(symbol)}${refresh ? "/refresh" : ""}`, {
+      const response = await fetch(apiUrl(`/api/v1/research/${encodeURIComponent(symbol)}${refresh ? "/refresh" : ""}`), {
         method: refresh ? "POST" : "GET",
         signal: controller.signal,
       });
@@ -182,7 +183,7 @@ export default function ResearchScreen() {
     setAnswer(null);
     try {
       const response = await fetch(
-        `/api/v1/research/${encodeURIComponent(report.company.symbol)}/ask`,
+        apiUrl(`/api/v1/research/${encodeURIComponent(report.company.symbol)}/ask`),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

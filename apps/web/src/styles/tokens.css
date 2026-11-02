@@ -29,7 +29,8 @@
   --radius-card: 14px;
   --radius-panel: 16px;
   --radius-sheet: 28px;
-  --font-family: "Futura PT", "Futura", "Futura-Medium", "Futura Std", "Century Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-heading: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --min-touch-target: 44px;
 }
 
@@ -79,6 +80,25 @@ button, input, select, textarea {
   font: inherit;
   color: inherit;
   font-feature-settings: inherit;
+}
+
+h1, h2, h3, h4, h5, h6,
+.brand,
+.mobile-brand,
+.screen-title,
+.panel-title,
+.event-headline,
+.metric-value,
+.badge,
+.tab-button,
+strong,
+b,
+[style*="font-weight: 600"],
+[style*="font-weight: 700"],
+[style*="font-weight: 800"],
+[style*="font-weight: 900"],
+[style*="font-weight:bold"] {
+  font-family: var(--font-heading);
 }
 button, a { -webkit-tap-highlight-color: transparent; }
 a { color: var(--accent); text-decoration: none; }

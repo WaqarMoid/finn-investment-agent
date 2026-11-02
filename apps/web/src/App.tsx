@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import BriefingScreen from "./features/briefing/BriefingScreen";
 import ResearchScreen from "./features/research/ResearchScreen";
 import WatchlistScreen from "./features/watchlist/WatchlistScreen";
+import { apiUrl } from "./api/baseUrl";
 import "./styles/tokens.css";
 import "./styles/layout.css";
 
@@ -37,7 +38,7 @@ export default function App() {
       if (["briefing", "research", "watchlist"].includes(hash)) setCurrentTab(hash as TabDestination);
     };
     window.addEventListener("hashchange", handleHash);
-    fetch("/api/v1/health/ready").then(r => setApiReady(r.ok)).catch(() => setApiReady(false));
+    fetch(apiUrl("/api/v1/health/ready")).then(r => setApiReady(r.ok)).catch(() => setApiReady(false));
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
 

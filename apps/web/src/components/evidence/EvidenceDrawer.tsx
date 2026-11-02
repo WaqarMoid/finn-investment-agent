@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiUrl } from "../../api/baseUrl";
 
 interface EvidenceDrawerProps {
   evidenceId: string;
@@ -37,7 +38,7 @@ export default function EvidenceDrawer({ evidenceId, onClose }: EvidenceDrawerPr
     setLoading(true);
     setError(null);
 
-    fetch(`/api/v1/evidence/${encodeURIComponent(evidenceId)}`)
+    fetch(apiUrl(`/api/v1/evidence/${encodeURIComponent(evidenceId)}`))
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Evidence ${evidenceId} not found (${res.status})`);
