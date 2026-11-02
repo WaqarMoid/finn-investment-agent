@@ -110,6 +110,33 @@ export default function BriefingScreen() {
       const response = await fetch(`/api/v1/briefing?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`);
       if (!response.ok) throw new Error(`Briefing request failed (${response.status})`);
       const json = await response.json();
+
+      // Automatically fallback to 7 days if 24h has 0 filings so leads are always populated immediately on opening
+      if (
+        selected === "24h" &&
+        json.data &&
+        json.data.tiers.needs_attention.length === 0 &&
+        json.data.tiers.worth_a_look.length === 0 &&
+        json.data.tiers.routine.length === 0
+      ) {
+        const w7 = getWindow("7d");
+        const resp7 = await fetch(`/api/v1/briefing?start=${encodeURIComponent(w7.start)}&end=${encodeURIComponent(w7.end)}`);
+        if (resp7.ok) {
+          const json7 = await resp7.json();
+          if (
+            json7.data &&
+            (json7.data.tiers.needs_attention.length > 0 ||
+              json7.data.tiers.worth_a_look.length > 0 ||
+              json7.data.tiers.routine.length > 0)
+          ) {
+            setData(json7.data);
+            setMeta(json7.meta);
+            setPreset("7d");
+            return;
+          }
+        }
+      }
+
       setData(json.data);
       setMeta(json.meta);
     } catch (err) {
@@ -120,7 +147,10 @@ export default function BriefingScreen() {
     }
   };
 
-  useEffect(() => { loadBriefing("24h"); }, []);
+  useEffect(() => {
+    // Automatically fetch and sync real-time filings on first open
+    loadBriefing("24h", true);
+  }, []);
   const choosePreset = (next: Preset) => {
     setPreset(next);
     if (next !== "custom") loadBriefing(next, true);
